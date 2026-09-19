@@ -1,0 +1,19 @@
+.chart-legend button, .percentile-area-legend button { display:inline-flex; align-items:center; gap:6px; padding:5px 8px; min-height:30px; border:1px solid var(--line, #294351); border-radius:6px; background:transparent; color:var(--text, #d8e6ed); font:inherit; cursor:pointer; text-align:left; overflow-wrap:anywhere; }
+.chart-legend button:hover, .percentile-area-legend button:hover { background:rgba(67,217,199,.08); }
+.chart-legend button[aria-pressed="false"], .percentile-area-legend button[aria-pressed="false"] { opacity:.5; text-decoration:line-through; }
+[data-chart-hidden="true"] { visibility:hidden; pointer-events:none; }
+[data-chart-point] { cursor:help; }
+[data-chart-point]:focus { outline:none; stroke:var(--text, #e5f3fa); stroke-width:3px; }
+.chart-legend button:focus-visible, .percentile-area-legend button:focus-visible { outline:2px solid var(--accent, #43d9c7); outline-offset:2px; }
+.chart-point-tooltip { position:fixed; z-index:200; pointer-events:none; max-width:min(400px, calc(100vw - 16px)); padding:10px 13px; border:1px solid #496575; border-radius:8px; color:#edf7fc; background:#102633; box-shadow:0 8px 24px #0006; white-space:pre-line; overflow-wrap:anywhere; font-size:12px; line-height:1.5; }
+.chart-point-tooltip[hidden] { display:none; }
+.percentile-area-legend { flex-wrap:wrap; }
+.percentile-section-fold { margin-top:14px; }
+.percentile-section-fold > summary, .percentile-time-card > summary { padding:12px 4px; color:var(--text, #d8e6ed); font-weight:650; cursor:pointer; overflow-wrap:anywhere; }
+.percentile-section-fold > summary:focus-visible, .percentile-time-card > summary:focus-visible { outline:2px solid var(--accent, #43d9c7); outline-offset:2px; }
+.percentile-section-fold:not([open]) { border-bottom:1px solid var(--line, #294351); }
+.percentile-summary { grid-template-columns:repeat(auto-fit, minmax(min(100%, 170px), 1fr)); }
+.percentile-summary .card strong { overflow-wrap:anywhere; }
+.percentile-toolbar { display:flex; flex-wrap:wrap; align-items:center; }
+.percentile-toolbar > input { flex:1 1 200px; min-width:0; }
+.percentile-toolbar .muted { flex:1 1 100%; }

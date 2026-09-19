@@ -1,0 +1,4 @@
+code,title,meaning,priority
+INSUFFICIENT_FUNDS,Недостаточно средств,Операция отклонена из-за недостаточного доступного остатка.,low
+BUSINESS_RULE_VIOLATION,Нарушено бизнес-правило,Операция отклонена известным бизнес-правилом.,low
+EXAMPLE,Example,Example,low

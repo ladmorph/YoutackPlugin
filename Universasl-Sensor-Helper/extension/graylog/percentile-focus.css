@@ -1,0 +1,20 @@
+.percentile-focus-section {
+  margin: 18px 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.percentile-focus-section .result-head { flex-wrap: wrap; gap: 8px; }
+.percentile-focus-uri { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; margin-top: 14px; }
+.percentile-focus-uri span { color: var(--muted); font-size: 12px; }
+.percentile-focus-uri code { color: var(--text); overflow-wrap: anywhere; font-size: 14px; }
+.percentile-focus-scroll { overflow-x: auto; }
+.percentile-focus-svg { display: block; width: 100%; max-width: 960px; min-width: 440px; height: auto; margin: 0 auto; }
+.percentile-focus-grid { stroke: var(--border); stroke-width: 1; }
+.percentile-focus-tick { fill: var(--muted); font-size: 12px; }
+.percentile-focus-key { fill: var(--text); font-size: 17px; font-weight: 700; }
+.percentile-focus-value { fill: var(--text); font-size: 14px; font-weight: 600; }
+@media (max-width: 600px) {
+  .percentile-focus-section { padding: 14px 10px; }
+}

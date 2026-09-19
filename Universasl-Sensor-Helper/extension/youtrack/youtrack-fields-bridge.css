@@ -1,0 +1,5 @@
+#report-path-controls,#sensor-source-controls,.advanced-connection,.youtrack-feature-toggle,#youtrack-feature-note,#youtrack-enabled,#youtrack-feature-label{display:none!important}
+#connection-panel .section-title p,#tab-session-card p{display:none}
+#tab-session-card::after{content:'Сессия общая с основным отчётом. Для получения токена откройте основной отчёт.';color:#566579}
+#youtrack-connection-controls{border:0;padding:0;margin:0}
+#disconnect,#connect-tab{display:none!important}
