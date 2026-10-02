@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ЦДР · YouTrack</title>
+<link rel="stylesheet" href="youtrack-page-shell.css">
+<link rel="stylesheet" href="youtrack-cdr.css">
+</head>
+<body>
+<nav class="reference-nav" aria-label="Разделы YouTrack">
+  <a href="youtrack.html">Отчёт</a>
+  <a href="youtrack-fields.html">Дополнительно · по полям</a>
+  <a href="youtrack-cdr.html" aria-current="page">ЦДР</a>
+  <button id="reference-network-toggle" type="button">Network и запросы</button>
+</nav>
+<main class="cdr">
+  <section class="cdr-panel">
+    <h2>ЦДР: кто и на скольких задачах поставил тег</h2>
+    <p class="cdr-hint">Берём всю историю тегов (TagsCategory) и считаем уникальные задачи, где тег когда-либо был добавлен, даже если его потом сняли.</p>
+    <div class="cdr-grid">
+      <label>Тег<input id="cdr-tag" type="text" value="Pasha" autocomplete="off"></label>
+      <label>Группировать по
+        <select id="cdr-mode">
+          <option value="field">Полю задачи</option>
+          <option value="author">Тем, кто добавил тег</option>
+        </select>
+      </label>
+      <label id="cdr-field-wrap">Поле<input id="cdr-field" type="text" value="Разработчик" autocomplete="off"></label>
+      <label>История с даты (необязательно)<input id="cdr-since" type="date"></label>
+    </div>
+    <div class="cdr-projects">
+      <div class="cdr-projects-head">
+        <strong>Проекты</strong>
+        <input id="cdr-project-filter" type="search" placeholder="Фильтр проектов">
+        <label class="cdr-inline"><input id="cdr-archived" type="checkbox"> архивные</label>
+        <button id="cdr-reload-projects" type="button" class="quiet">Обновить список</button>
+        <span id="cdr-projects-count" class="cdr-muted"></span>
+      </div>
+      <div id="cdr-project-list" class="cdr-project-list" role="group" aria-label="Проекты"></div>
+    </div>
+    <div class="cdr-actions">
+      <button id="cdr-run" type="button" class="primary">Построить</button>
+      <button id="cdr-cancel" type="button" class="quiet" hidden>Остановить</button>
+      <button id="cdr-csv" type="button" class="quiet" disabled>CSV</button>
+      <button id="cdr-reconnect" type="button" class="quiet">Обновить подключение</button>
+      <span id="cdr-status" class="cdr-muted" role="status"></span>
+    </div>
+    <p id="cdr-error" class="cdr-error" role="alert" hidden></p>
+  </section>
+  <section class="cdr-panel" id="cdr-result" hidden>
+    <div id="cdr-summary" class="cdr-muted"></div>
+    <div class="cdr-table-wrap">
+      <table class="cdr-table">
+        <thead><tr><th id="cdr-group-head">Группа</th><th>Задач (уникальных)</th><th>Добавлений тега</th><th>Задачи</th></tr></thead>
+        <tbody id="cdr-rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script src="youtrack-reference-network.js"></script>
+<script src="youtrack-cdr.js"></script>
+<script src="youtrack-page-shell.js"></script>
+</body>
+</html>
