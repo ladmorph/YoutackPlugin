@@ -1,0 +1,17 @@
+#advanced-youtrack-sensor{position:fixed;right:22px;bottom:18px;z-index:2147483646;display:grid;grid-template-columns:auto 112px;align-items:end;gap:10px;font:14px/1.35 Inter,"Segoe UI",Arial,sans-serif;color:#16313a;filter:drop-shadow(0 14px 24px rgba(0,0,0,.22));animation:yt-sensor-arrive .72s cubic-bezier(.2,.85,.2,1) both}
+#advanced-youtrack-sensor .yt-sensor-bubble{max-width:260px;padding:12px 14px;border:1px solid rgba(32,137,151,.3);border-radius:14px 14px 4px 14px;background:rgba(255,255,255,.97);box-shadow:0 10px 30px rgba(18,48,58,.18)}
+#advanced-youtrack-sensor .yt-sensor-bubble strong{display:block;margin-bottom:7px;font-size:14px}
+#advanced-youtrack-sensor .yt-sensor-action{min-height:36px;padding:7px 12px;border:0;border-radius:9px;background:linear-gradient(110deg,#1cae9f,#258cc0);color:#fff;font:700 13px/1.2 inherit;cursor:pointer}
+#advanced-youtrack-sensor .yt-sensor-action:hover{filter:brightness(1.07)}
+#advanced-youtrack-sensor .yt-sensor-action:disabled{cursor:default;background:#e6f1f2;color:#31555f;filter:none}
+#advanced-youtrack-sensor .yt-sensor-action:focus-visible{outline:3px solid #58eadd;outline-offset:2px}
+#advanced-youtrack-sensor .yt-sensor-figure{position:relative;width:112px;height:112px;border:0;padding:0;background:transparent;cursor:pointer}
+#advanced-youtrack-sensor .yt-sensor-figure .sensor-live{position:absolute;inset:0;width:112px;height:112px}
+#advanced-youtrack-sensor .yt-sensor-figure::after{content:"";position:absolute;z-index:-1;inset:28px 13px 8px;border-radius:50%;background:radial-gradient(circle,rgba(67,217,199,.42),transparent 70%);filter:blur(8px);animation:yt-sensor-glow 2.8s ease-in-out infinite}
+#advanced-youtrack-sensor[data-busy="true"] .yt-sensor-action{pointer-events:none;opacity:.7}
+#advanced-youtrack-sensor[data-busy="true"] .yt-sensor-figure{animation:yt-sensor-scan .85s ease-in-out infinite}
+@keyframes yt-sensor-arrive{0%{opacity:0;transform:translateY(50px) scale(.78)}68%{opacity:1;transform:translateY(-7px) scale(1.04)}100%{transform:none}}
+@keyframes yt-sensor-glow{0%,100%{opacity:.35;transform:scale(.88)}50%{opacity:.8;transform:scale(1.08)}}
+@keyframes yt-sensor-scan{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
+@media(max-width:620px){#advanced-youtrack-sensor{right:10px;bottom:10px;grid-template-columns:minmax(0,1fr) 88px;max-width:calc(100vw - 20px)}#advanced-youtrack-sensor .yt-sensor-figure,#advanced-youtrack-sensor .yt-sensor-figure .sensor-live{width:88px;height:88px}}
+@media(prefers-reduced-motion:reduce){#advanced-youtrack-sensor,#advanced-youtrack-sensor *{animation:none!important}}

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YouTrack · отчёт по полям</title>
+  <link rel="stylesheet" href="youtrack.css" />
+  <link rel="stylesheet" href="youtrack-advanced.css" />
+<link rel="stylesheet" href="youtrack-fields-bridge.css" /><link rel="stylesheet" href="youtrack-page-shell.css"></head>
+<body>
+  <header class="yt-header">
+    <div><span class="yt-product">UNIVERSASL SENSOR HELPER</span><h1>YouTrack · по полям</h1><a href="youtrack.html">← Основной отчёт</a><p>Соберите отчёт по списаниям и проверьте результат перед выгрузкой.</p></div>
+    <div class="header-actions"><button id="start-youtrack-onboarding" class="help-button" type="button"><span aria-hidden="true">?</span> Как здесь работать</button><div id="connection-state" class="state" role="status">Не подключено</div></div>
+  </header>
+
+  <nav class="yt-tabs" aria-label="Разделы YouTrack"><button id="tab-report" class="active" type="button">Отчёт</button><button id="tab-analysis" class="analysis-tab" type="button">✦ Разбор Сенсора <span id="analysis-ready" hidden>Готов</span></button><button id="tab-builder" type="button">Конструктор JSON</button><button id="tab-log" type="button">Network и запросы</button></nav>
+  <main id="report-view" data-view="report" data-youtrack-enabled="true">
+    <div id="report-path-controls" class="panel report-section">
+      <h2 id="report-path-title">Как собрать отчёт</h2>
+      <div class="report-mode-switch" role="group" aria-labelledby="report-path-title"><button id="report-mode-legacy" type="button" aria-pressed="true">Обычный · JSON</button><button id="report-mode-fields" type="button" aria-pressed="false">Новый · поля YouTrack</button></div>
+      <p id="report-path-note">Прежние проекты, teams.json, config.json, списания и Excel. Все настройки и расчёты сохранены.</p>
+    </div>
+    <div id="sensor-source-controls" class="panel sensor-source-controls" hidden>
+      <label for="sensor-analysis-source">Какой результат посмотреть</label>
+      <select id="sensor-analysis-source"><option value="analysis">Обычный отчёт</option><option value="advanced">Отчёт по полям YouTrack</option></select>
+      <p>Здесь только просмотр и выгрузки. Настройка и запуск обоих способов — во вкладке «Отчёт».</p>
+    </div>
+    <section id="advanced-report-panel" class="panel advanced-surface" hidden aria-label="Результат по полям YouTrack"></section>
+    <section id="connection-panel" class="panel report-section" aria-labelledby="connection-title">
+      <div class="section-head"><div class="section-title"><span class="step-number" aria-hidden="true">1</span><div><h2 id="connection-title">Подключение</h2><p>Используйте уже открытую и авторизованную вкладку YouTrack.</p></div></div><button id="disconnect" class="quiet" type="button" hidden>Отключить</button></div>
+      <fieldset id="youtrack-connection-controls">
+      <div id="tab-session-card" class="tab-session-card">
+        <div><strong>Штатная сессия YouTrack</strong><p id="tab-session-note">На странице YouTrack нажмите у помощника «Подключить», затем перейдите на главную. После получения токена откройте + YouTrack.</p></div>
+        <button id="connect-tab" class="primary" type="button" disabled>Использовать открытую вкладку</button>
+      </div>
+      <details class="advanced-connection"><summary>Подключение без открытой вкладки</summary><p>Запасной вариант для автономного отчёта: OAuth PKCE или временный permanent token.</p>
+      <div class="grid connection-grid">
+        <label>Адрес YouTrack<input id="base-url" type="url" autocomplete="url" placeholder="https://youtrack.company/youtrack" /></label>
+        <label>Hub URL <small>определится автоматически</small><input id="hub-url" type="url" autocomplete="off" placeholder="https://youtrack.company/hub" /></label>
+        <label>OAuth Client ID<input id="client-id" type="text" autocomplete="off" maxlength="200" /></label>
+        <label>Scope сервиса YouTrack<input id="oauth-scope" type="text" autocomplete="off" maxlength="500" /></label>
+        <label class="wide-field">Redirect URI для регистрации OAuth-клиента<input id="oauth-redirect" type="text" readonly /></label>
+      </div>
+      <div class="actions"><button id="connect-oauth" class="primary" type="button">Подключить через YouTrack</button><button id="load-projects" type="button" disabled>Получить проекты</button></div>
+      <p class="oauth-note">Администратор Hub создаёт публичный OAuth-клиент без client secret, включает Authorization Code + PKCE и регистрирует Redirect URI выше.</p>
+      <details class="fallback"><summary>Временное подключение permanent token</summary><div class="token-row"><label>Token<input id="permanent-token" type="password" autocomplete="off" maxlength="8192" placeholder="perm:…" /></label><button id="connect-token" type="button">Подключить на эту сессию</button></div><p>Токен создаётся в профиле YouTrack. Он хранится только до перезапуска браузера и никогда не попадает в URL или отчёт.</p></details>
+      </details>
+      </fieldset>
+      <p id="connection-error" class="error" role="alert" hidden></p>
+    </section>
+
+    <section id="advanced-setup-panel" class="panel advanced-surface" hidden aria-label="Сбор по полям YouTrack"></section>
+    <section id="profile-panel" class="panel report-section" aria-labelledby="profile-title">
+      <div class="section-head"><div class="section-title"><span class="step-number" aria-hidden="true">2</span><div><h2 id="profile-title">Проекты и команды</h2><p id="profile-note">Без файлов: каждый проект считается одной командой.</p></div></div><span id="profile-kind" class="badge">Автоматический</span></div>
+      <section class="folder-projects" aria-labelledby="folder-projects-title">
+        <div class="section-head"><div><h3 id="folder-projects-title">Проекты YouTrackPlus</h3><p id="folder-projects-note" role="status">Выберите папку YouTrackPlus — её подпапки станут проектами отчёта.</p></div><button id="choose-plus-folder" class="quiet" type="button">Подключить папку</button></div>
+        <div class="folder-project-actions"><label>Проект отчёта<select id="plus-project" disabled><option value="">Папка не подключена</option></select></label><button id="refresh-plus-projects" type="button" class="quiet" disabled>Обновить список</button><button id="new-plus-project" type="button" class="quiet" disabled>Создать проект</button></div>
+        <div id="new-plus-form" class="folder-create" hidden><label>Имя новой папки<input id="new-plus-name" type="text" maxlength="100" placeholder="Проект А" /></label><button id="create-plus-project" type="button" class="primary">Создать папку</button><button id="cancel-plus-project" type="button" class="quiet">Отмена</button></div>
+        <p id="folder-access-status" class="folder-access-status" role="status"></p><div class="actions"><button id="check-folder-access" type="button" class="quiet" disabled>Проверить доступ</button><button id="save-plus-settings" type="button" class="quiet" disabled>Сохранить команды и правила в проект</button></div>
+        <p class="privacy">YouTrackPlus / Проект А / teams.json, config.json. work_items.json можно добавить для отчёта из выгрузки. При выборе папки-родителя внутри неё будет создана YouTrackPlus. Переключение не запускает сбор отчёта. Сохранение заменяет только teams.json и config.json выбранного проекта.</p>
+        <p id="plus-project-error" class="error" role="alert" hidden></p>
+      </section>
+      <section id="json-mode-panel" class="source-setup" aria-labelledby="source-setup-title">
+        <div class="section-head"><div><h3 id="source-setup-title">Что нужно для вашего отчёта</h3><p id="json-mode-note" role="status">Проверяю файлы в папке расширения…</p></div><button id="recheck-json" class="quiet" type="button">Проверить папку ещё раз</button></div>
+        <div class="source-cards">
+          <article class="source-card" data-file="teams"><h4>Команды и участники</h4><span id="teams-source-state" class="file-state">Проверяю teams.json…</span><p>teams.json делит проекты на ваши команды, задаёт участников и ёмкость. Без него отчёт объединяет людей по проектам.</p><button id="import-teams" type="button" class="primary">Выбрать teams.json</button><button id="edit-teams" type="button" class="quiet" hidden>Редактировать команды</button></article>
+          <article class="source-card" data-file="config"><h4>Правила расчёта</h4><span id="config-source-state" class="file-state">Стандартные правила</span><p>config.json нужен, если у вас свои названия полей оценки, статусов или типов задач. Правила также можно настроить ниже.</p><button id="import-config" type="button" class="quiet">Выбрать config.json</button><button id="edit-config" type="button" class="quiet">Редактировать правила</button></article>
+        </div>
+        <details id="offline-report" class="offline-report"><summary><span>Отчёт из файла</span><small id="offline-report-status">Для готовой выгрузки · необязательно</small></summary><div class="offline-report-body"><article class="source-card" data-file="work"><span id="work-source-state" class="file-state">Из YouTrack после подключения</span><p>Выберите готовую выгрузку work_items.json, чтобы построить отчёт локально, без запросов к YouTrack. При обычном подключении этот файл не нужен.</p><button id="import-work-items" type="button" class="quiet">Выбрать work_items.json</button></article></div></details>
+        <p class="source-folder-help">Положили файл в папку? Это должна быть папка, выбранная при «Загрузить распакованное», рядом с manifest.json (или её подпапка extension). Нажмите «Проверить папку ещё раз». Если файл не найден — выберите его кнопкой выше. Проверка файлов не обращается к YouTrack и не запускает отчёт.</p>
+      </section>
+      <div id="project-list" class="project-list" aria-label="Доступные проекты"></div>
+      <div class="actions selection-actions"><button id="select-all-projects" class="quiet" type="button">Выбрать все</button><button id="clear-projects" class="quiet" type="button">Снять выбор</button></div>
+      <input id="teams-file" type="file" accept=".json,application/json" hidden /><input id="work-items-file" type="file" accept=".json,application/json" hidden /><input id="config-file" type="file" accept=".json,application/json" hidden />
+      <details class="profile-tools"><summary><span>Форматы файлов и дополнительные настройки</span><small>Примеры JSON · правила · сброс профиля</small></summary>
+      <div class="profile-tools-body">
+      <div class="actions"><button id="forget-profile" class="danger-link" type="button">Удалить локальный профиль</button></div>
+      <details class="file-formats"><summary>Показать формат файлов</summary>
+        <div class="format-grid"><div><strong>teams.json</strong><pre>[{
+  "projectName": "Проект",
+  "closed_tasks_condition": "Статус: {DONE}",
+  "teams": [{
+    "name": "Команда",
+    "capacity_in_hours": 160,
+    "lead": "login",
+    "members": ["login2"]
+  }]
+}]</pre></div><div><strong>work_items.json</strong><pre>[{
+  "id": "work-item-id",
+  "date": 1788134400000,
+  "duration": {"minutes": 120},
+  "author": {"login": "login"},
+  "type": {"name": "Разработка"},
+  "issue": {
+    "id": "issue-id",
+    "idReadable": "PRJ-1",
+    "project": {"name": "Проект"},
+    "customFields": []
+  }
+}]</pre></div></div>
+        <p>Файлы с точными именами в корне распакованного расширения подхватываются автоматически. Один work_items.json уже даёт отчёт «проект = команда»; teams.json добавляет внутренние команды, участников и ёмкость.</p>
+      </details>
+      <details class="classification"><summary>Правила классификации без config.json</summary>
+        <div class="grid rules-grid">
+          <label>Типы списаний · разработка<input id="rule-development" type="text" /></label>
+          <label>Встречи<input id="rule-meeting" type="text" /></label>
+          <label>Оверы<input id="rule-overtime" type="text" /></label>
+          <label>Поле типа задачи<input id="rule-issue-field" type="text" /></label>
+          <label>Бизнесовые типы<input id="rule-business" type="text" /></label>
+          <label>Технические типы<input id="rule-technical" type="text" /></label>
+          <label>Баги<input id="rule-bug" type="text" /></label>
+          <label>Тип для встреч<input id="rule-works" type="text" /></label>
+          <label>Поле статуса<input id="rule-status-field" type="text" /></label>
+          <label>Завершённые статусы<input id="rule-statuses" type="text" /></label>
+          <label>Поле оценки<input id="rule-estimate" type="text" /></label>
+        </div>
+        <div class="actions"><button id="save-rules" type="button">Сохранить правила профиля</button></div>
+      </details>
+      </div>
+      </details>
+      <p id="profile-error" class="error" role="alert" hidden></p>
+    </section>
+
+
+
+    <section id="run-panel" class="panel report-section" aria-labelledby="run-title" hidden>
+      <div class="section-head"><div class="section-title"><span class="step-number" aria-hidden="true">3</span><div><h2 id="run-title">Период и запуск</h2><p>Запросы выполняются только после нажатия кнопки.</p></div></div><span id="progress" class="progress">Готово к запуску</span></div>
+      <div class="run-row"><label>С<input id="date-from" type="date" /></label><label>По<input id="date-to" type="date" /></label><label class="check-label"><input id="ignore-period" type="checkbox" disabled />Весь период файла</label><button id="run-report" class="primary" type="button">Построить отчёт</button><button id="stop-report" class="stop" type="button" disabled>Стоп</button></div>
+      <div class="actions"><button id="refresh-report-data" class="quiet" type="button" hidden>Обновить данные из YouTrack</button><span class="privacy">Повторный расчёт использует готовый результат до 2 минут. Обновление заново загрузит данные.</span></div>
+      <p class="privacy">Сырые страницы обрабатываются по мере загрузки и не записываются на диск. Локально сохраняются только настройки профиля; токен живёт в памяти сессии браузера. Между порциями — 20 мс после ответа.</p>
+      <p id="run-error" class="error" role="alert" hidden></p>
+    </section>
+
+    <section id="result-panel" class="panel result-panel report-section" hidden>
+      <div class="section-head"><div class="section-title"><span class="step-number complete" aria-hidden="true">✓</span><div><h2>Готовый отчёт</h2><p id="result-meta"></p></div></div><div class="actions result-actions"><button id="export-csv" class="quiet" type="button">CSV</button><button id="export-xlsx" class="primary" type="button">Скачать Excel</button></div></div>
+      <nav class="result-jump-nav" aria-label="Навигация по результату"><button type="button" data-report-jump="summary">Сводка</button><button type="button" data-report-jump="project-chart-panel">Графики</button><button type="button" data-report-jump="insights-panel">Разбор Сенсора</button></nav>
+      <div id="summary" class="summary"></div>
+      <div class="table-wrap"><table><thead><tr><th>Проект / команда</th><th>Ёмкость</th><th>Закрыто БЗ</th><th id="head-business">Бизнес</th><th id="head-technical">Тех</th><th id="head-bug">Баги</th><th id="head-overtime">Оверы</th><th id="head-meeting">Встречи</th><th>Утилизация</th><th>Общий факт</th><th>В оценке</th></tr></thead><tbody id="result-rows"></tbody></table></div>
+      <details id="unmatched-wrap" hidden><summary>Не сопоставлено с командами: <span id="unmatched-count">0</span></summary><div id="unmatched-list" class="unmatched-list"></div></details>
+    </section>
+    <section id="insights-panel" class="panel sensor-analysis" hidden aria-labelledby="analysis-title"><div class="analysis-hero"><span class="sensor-mark" aria-hidden="true">✦</span><div><span class="analysis-eyebrow">СЕНСОР · ВТОРОЙ ВЗГЛЯД НА ОТЧЁТ</span><h2 id="analysis-title" tabindex="-1">Что стоит проверить</h2><p id="analysis-context">Сначала постройте отчёт. Здесь появятся наблюдения по его данным.</p><p>Оценки задач, полнота данных и распределение списаний. Без дополнительных запросов; Excel остаётся прежним.</p></div><button id="analysis-back" type="button">К отчёту</button></div><div id="sensor-expanded-analysis"></div><h3 id="sensor-checks" class="sensor-existing-title">Проверки отчёта и списания участников</h3><div id="insights" class="insights"><p>Выберите проект и период на вкладке «Отчёт», затем нажмите «Построить отчёт».</p></div></section>
+    <section id="project-chart-panel" class="panel analytics-panel" hidden>
+      <div class="section-head"><div><h2>Графики</h2><p>Списания участников, ёмкость и оценки по уже собранному отчёту. Новых запросов в YouTrack нет.</p></div><button id="download-chart-png" class="quiet" type="button">Скачать PNG</button></div>
+      <div class="analytics-toolbar">
+        <div class="chart-switch" role="tablist" aria-label="Вид графика">
+          <button type="button" role="tab" aria-selected="true" data-chart-kind="people">Списания по людям</button>
+          <button type="button" role="tab" aria-selected="false" data-chart-kind="capacity">Факт и ёмкость</button>
+          <button type="button" role="tab" aria-selected="false" data-chart-kind="estimate">Оценка и факт</button>
+        </div>
+        <label id="chart-team-filter-wrap" class="chart-team-filter">Команда<select id="chart-team-filter"><option value="">Все команды</option></select></label>
+      </div>
+      <div id="chart-legend" class="chart-legend" aria-label="Легенда"></div>
+      <div id="project-chart" class="analytics-chart"></div>
+      <p id="chart-note" class="chart-note" role="status"></p>
+    </section>
+    <section id="technical-log-panel" class="panel technical-log-panel" hidden><div class="section-head"><div><h2>Network и запросы</h2><p>Штатные вызовы YouTrack и запросы расширения: метод, безопасный путь, наличие Bearer, статус и время. Host, значение токена, query-параметры и тела сюда не попадают.</p></div><button id="clear-technical-log" class="quiet" type="button">Очистить</button></div><div class="table-wrap"><table><thead><tr><th>Время</th><th>Источник</th><th>Метод и путь</th><th>Авторизация / порция</th><th>Статус и время</th></tr></thead><tbody id="technical-log-rows"></tbody></table></div></section>
+    <section id="json-builder-panel" class="panel json-builder-panel" hidden aria-labelledby="json-builder-title">
+      <div class="section-head builder-heading"><div><span class="builder-kicker">Локальный редактор · 0 HTTP</span><h2 id="json-builder-title">Конструктор JSON</h2><p>Соберите или поправьте профиль команд и правила отчёта. work_items.json остаётся фактической выгрузкой и здесь не редактируется.</p></div><button id="start-builder-onboarding" class="help-button" type="button"><span aria-hidden="true">?</span> Онбординг конструктора</button></div>
+      <div class="builder-notice"><strong>Что здесь хранится</strong><span>Названия проектов, команд, логины, ёмкость и правила. Изменения применяются к отчёту только отдельной кнопкой.</span></div>
+      <div class="builder-grid">
+        <section id="builder-teams-section" class="builder-card" aria-labelledby="builder-teams-title">
+          <div class="builder-card-head"><div><h3 id="builder-teams-title">teams.json</h3><p>Проекты, команды, участники и условие закрытой задачи.</p></div><div class="builder-toolbar"><button id="builder-import-teams" class="quiet" type="button">Загрузить</button><button id="builder-add-project" class="primary" type="button">+ Проект</button></div></div>
+          <input id="builder-teams-file" type="file" accept=".json,application/json" hidden />
+          <div id="builder-projects" class="builder-projects"></div>
+        </section>
+        <section id="builder-rules-section" class="builder-card" aria-labelledby="builder-rules-title">
+          <div class="builder-card-head"><div><h3 id="builder-rules-title">config.json</h3><p>Какие списания и задачи попадают в колонки отчёта.</p></div><button id="builder-import-config" class="quiet" type="button">Загрузить</button></div>
+          <input id="builder-config-file" type="file" accept=".json,application/json" hidden />
+          <div id="builder-rules" class="builder-rules"></div>
+        </section>
+      </div>
+      <section id="builder-preview-section" class="builder-preview" aria-labelledby="builder-preview-title">
+        <div class="builder-card-head"><div><h3 id="builder-preview-title">Проверка и выгрузка</h3><p>Предпросмотр обновляется только после проверки, поэтому ошибки не попадут в файл.</p></div><span id="builder-status" class="builder-status" role="status">Черновик готов</span></div>
+        <div class="builder-preview-tabs" role="tablist" aria-label="Предпросмотр JSON"><button type="button" class="active" data-builder-preview="teams">teams.json</button><button type="button" data-builder-preview="config">config.json</button></div>
+        <pre id="builder-preview" tabindex="0"></pre>
+        <p id="builder-error" class="error" role="alert" hidden></p>
+        <div class="actions wrap builder-actions"><button id="builder-validate" type="button">Проверить</button><button id="builder-apply" class="primary" type="button">Применить к отчёту</button><button id="builder-download-teams" class="quiet" type="button">Скачать teams.json</button><button id="builder-download-config" class="quiet" type="button">Скачать config.json</button></div>
+      </section>
+    </section>
+  </main>
+
+  <div id="breakdown-modal" class="modal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="breakdown-title"><div class="section-head"><div><h2 id="breakdown-title">Детализация</h2><p id="breakdown-meta"></p></div><button id="close-breakdown" class="quiet" type="button">Закрыть</button></div><div id="breakdown-content" class="table-wrap"></div><div class="actions"><button id="export-breakdown-xlsx" class="quiet" type="button">Скачать Excel</button></div></div></div>
+
+  <script src="../../lib/youtrack/youtrack-query.js"></script>
+  
+  <script src="../../lib/youtrack/youtrack-sensor-analysis.js"></script>
+  <script src="../../lib/youtrack/youtrack-workitems.js"></script>
+  <script src="../../lib/youtrack/youtrack-charts.js"></script>
+  <script src="../../lib/youtrack/youtrack-profile-builder.js"></script>
+  <script src="exceljs.min.js"></script>
+  <script src="youtrack-folders.js"></script>
+  <script src="youtrack-sensor-help.js"></script>
+  <script src="youtrack-sensor-view.js"></script>
+  <script src="youtrack-sensor-pdf.js"></script>
+  <script src="../../lib/youtrack/youtrack-people.js"></script>
+  <script src="../../lib/youtrack/youtrack-advanced-rules.js"></script>
+  <script src="../../lib/youtrack/youtrack-ttm.js"></script>
+  <script src="../../lib/youtrack/youtrack-heatmap.js"></script>
+  <script src="../../lib/youtrack/youtrack-advanced.js"></script>
+  <script src="../../lib/youtrack/youtrack-multi.js"></script>
+  <script src="youtrack-trend.js"></script>
+  <script src="youtrack-people.js"></script>
+  <script src="youtrack-ttm.js"></script>
+  <script src="youtrack-heatmap.js"></script>
+  <script src="youtrack-advanced.js"></script>
+  <script src="youtrack-reference-network.js"></script><script src="youtrack-feature.js"></script>
+  <script src="youtrack.js"></script>
+  <script src="youtrack-navigation.js"></script>
+  <script src="../shared/sensor-mascot.js"></script>
+  <script src="youtrack-builder.js"></script>
+  <script src="youtrack-onboarding.js"></script>
+<script src="youtrack-page-shell.js"></script></body>
+</html>

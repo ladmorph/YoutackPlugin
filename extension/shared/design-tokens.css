@@ -1,0 +1,24 @@
+/* Shared visual language. Existing feature styles use the compatibility aliases. */
+:root {
+  --bg: #071019;
+  --surface: #0b1721;
+  --surface-raised: #101f2b;
+  --panel: var(--surface);
+  --line: #203441;
+  --line-strong: #34505f;
+  --text: #eef5f7;
+  --muted: #a2b7c4;
+  --accent: #52d6c7;
+  --accent-soft: rgba(82, 214, 199, .1);
+  --cyan: var(--accent);
+  --green: #58d39b;
+  --amber: #f5b95d;
+  --red: #ff6b77;
+  --blue: #6ca8ff;
+  --violet: #ad8cff;
+  --radius: 12px;
+  --control-radius: 8px;
+  --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-code: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-family: var(--font-ui);
+}

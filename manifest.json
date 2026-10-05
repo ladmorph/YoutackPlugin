@@ -1,0 +1,110 @@
+{
+  "manifest_version": 3,
+  "name": "Universasl-Sensor-Helper",
+  "version": "1.58.7",
+  "description": "Сенсор и отдельные инструменты для Graylog и YouTrack.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "webRequest",
+    "storage",
+    "tabs",
+    "downloads"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*",
+    "https://youtrack-mapps.sovcombank.ru/*"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "extension/background.js"
+  },
+  "icons": {
+    "16": "extension/shared/sensor-icon-16.png",
+    "32": "extension/shared/sensor-icon-32.png",
+    "48": "extension/shared/sensor-icon-48.png",
+    "128": "extension/shared/sensor-icon-128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'self' http: https:"
+  },
+  "action": {
+    "default_title": "Universasl-Sensor-Helper",
+    "default_icon": {
+      "16": "extension/shared/sensor-icon-16.png",
+      "32": "extension/shared/sensor-icon-32.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/search*",
+        "https://*/search*",
+        "http://*/*/search*",
+        "https://*/*/search*"
+      ],
+      "js": [
+        "extension/graylog/graylog-page.js",
+        "extension/graylog/graylog-runtime.js",
+        "lib/graylog/graylog-overlay.js",
+        "lib/graylog/trace-error-catalog.js",
+        "lib/graylog/java-error-reference.js",
+        "lib/graylog/integration-error-reference.js",
+        "lib/graylog/postgres-error-reference.js",
+        "lib/graylog/kafka-error-reference.js",
+        "lib/graylog/error-reference.js",
+        "lib/graylog/trace-journal.js",
+        "extension/graylog/graylog-preview-panel.js",
+        "lib/graylog/exception-chain.js",
+        "extension/graylog/graylog-exception-highlights.js",
+        "extension/graylog/graylog-message-badges.js",
+        "extension/shared/sensor-mascot.js",
+        "extension/graylog/graylog-clippy.js",
+        "extension/graylog/graylog-preview-onboarding.js"
+      ],
+      "run_at": "document_idle",
+      "exclude_matches": [
+        "https://youtrack-mapps.sovcombank.ru/*"
+      ]
+    },
+    {
+      "matches": [
+        "http://*/search*",
+        "https://*/search*",
+        "http://*/*/search*",
+        "https://*/*/search*"
+      ],
+      "js": [
+        "extension/graylog/graylog-page.js",
+        "lib/graylog/exception-chain.js",
+        "extension/graylog/graylog-rendered-messages.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_idle",
+      "exclude_matches": [
+        "https://youtrack-mapps.sovcombank.ru/*"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "extension/shared/living-signal-mascot.png",
+        "extension/shared/living-signal-mascot-wave.png",
+        "extension/graylog/clippy-3.gif",
+        "extension/graylog/clippy-6.gif",
+        "extension/graylog/clippy-21.gif",
+        "extension/shared/sensor-mascot.js"
+      ],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ]
+}
+

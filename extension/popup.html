@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Universasl-Sensor-Helper</title>
+    <link rel="stylesheet" href="graylog/popup.css" />
+    <link rel="stylesheet" href="shared/design-tokens.css" />
+    <link rel="stylesheet" href="shared/app-shell.css" />
+    <link rel="stylesheet" href="shared/personal-navigator.css" />
+    <link rel="stylesheet" href="graylog/chart-interactions.css" />
+    <link rel="stylesheet" href="graylog/trace-error-view.css" />
+    <link rel="stylesheet" href="shared/empty-state.css" />
+    <link rel="stylesheet" href="graylog/percentile-focus.css" />
+    <link rel="stylesheet" href="graylog/clippy.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Перейти к содержимому</a>
+    <div class="app-shell">
+    <aside class="app-sidebar" aria-label="Universasl-Sensor-Helper">
+      <div class="app-brand"><span class="mark" aria-hidden="true">A</span><div><strong>Advanced Graylog</strong><small>Анализ событий и запросов</small></div></div>
+      <nav id="tool-tabs" class="tool-tabs" aria-label="Разделы инструмента" hidden>
+        <button id="release-tab" class="tool-tab active" type="button" aria-controls="release-view" aria-current="page"><span class="nav-symbol" aria-hidden="true">▥</span><span>Мониторинг</span></button>
+        <button id="search-tab" class="tool-tab tool-tab-unavailable" type="button" aria-controls="search-view" aria-disabled="true" disabled title="Раздел временно недоступен"><span class="nav-symbol" aria-hidden="true">⌕</span><span>Поиск <small class="wip-label">Позже</small></span></button>
+        <button id="spam-tab" class="tool-tab" type="button" aria-controls="spam-view"><span class="nav-symbol" aria-hidden="true">⇉</span><span>Спам запросов</span></button>
+        <button id="journal-tab" class="tool-tab" type="button" aria-controls="journal-view"><span class="nav-symbol" aria-hidden="true">🕮</span><span>Журнал</span></button>
+        <button id="technical-log-tab" class="tool-tab" type="button" aria-controls="technical-log-view"><span class="nav-symbol" aria-hidden="true">≡</span><span>Техническая информация</span></button>
+      </nav>
+      <button id="navigator-tab" class="tool-tab navigator-tab" type="button" aria-controls="navigator-view"><span class="nav-symbol" aria-hidden="true">⌖</span><span>Навигатор</span></button>
+      <button id="youtrack-launch" class="tool-tab youtrack-launch" type="button"><span class="nav-symbol" aria-hidden="true">+</span><span>YouTrack</span></button>
+      <div class="sidebar-note"><strong>В вашей сессии Graylog</strong><span>Результаты остаются в памяти открытой вкладки.</span></div>
+    </aside>
+    <div id="workspace" class="workspace" tabindex="-1">
+    <header class="page-header">
+      <div class="page-heading"><span class="page-eyebrow">Universasl-Sensor-Helper</span><h1 id="view-title">Мониторинг</h1><p id="view-description">Новые и известные ошибки за выбранный период.</p></div>
+      <div class="page-actions"><button id="start-onboarding" class="secondary onboarding-launch" type="button">Онбординг</button><p id="page-state" class="connection-state" role="status">Проверяю текущую вкладку…</p></div>
+    </header>
+
+    <section id="auth-recovery" class="auth-recovery" hidden>
+      <div><strong>Graylog вернул 401 Unauthorized</strong><p id="auth-recovery-text">Откройте исходную вкладку Graylog и завершите вход. После возврата запрос повторится автоматически.</p></div>
+      <button id="reauth-graylog" class="secondary" type="button">Открыть Graylog и войти</button>
+    </section>
+
+    <section id="launcher" class="panel" hidden>
+      <label for="graylog-url">Ссылка на поиск Graylog</label>
+      <input id="graylog-url" type="url" autocomplete="off" placeholder="https://graylog.example/search?q=..." />
+      <button id="open-graylog" class="secondary">Открыть Graylog</button>
+      <p class="hint">Войдите на штатной странице, откройте нужный поиск и снова нажмите значок расширения.</p>
+    </section>
+
+    <main id="journal-view" hidden>
+      <div class="journal-toolbar">
+        <label class="journal-search" for="journal-search">Найти в журнале<input id="journal-search" type="search" placeholder="traceId или initUri" autocomplete="off" /></label>
+        <button id="journal-clear" class="secondary" type="button">Очистить журнал</button>
+      </div>
+      <p class="hint">Записи появляются, когда вы разбираете trace в панели на странице Graylog. Ссылка сохраняется с зафиксированным периодом, поэтому открывает то же окно и через сутки. Данные лежат только в этом браузере.</p>
+      <p id="journal-status" class="hint" role="status" aria-live="polite" hidden></p>
+      <div id="journal-rows" class="journal-rows"></div>
+      <p id="journal-empty" class="hint" hidden>Журнал пуст. Откройте trace в Graylog и нажмите разбор — запись появится здесь.</p>
+    </main>
+
+    <main id="navigator-view" hidden>
+      <div class="navigator-toolbar">
+        <label class="navigator-search" for="navigator-search">Найти в ссылках и заметках<input id="navigator-search" type="search" placeholder="Название, адрес или текст заметки" autocomplete="off" /></label>
+        <div class="navigator-actions"><button id="navigator-add" class="primary" type="button">+ Добавить</button><button id="navigator-import" class="secondary" type="button">Импорт CSV</button><button id="navigator-export" class="secondary" type="button">Скачать CSV</button></div>
+      </div>
+      <p id="navigator-status" class="navigator-status" role="status" aria-live="polite"></p>
+      <p id="navigator-count" class="navigator-count"></p>
+      <div id="navigator-grid" class="navigator-grid"></div>
+      <button id="navigator-more" class="secondary" type="button" hidden>Показать ещё</button>
+      <details class="navigator-info"><summary>Мой список · локально в этом браузере</summary><p>Работает без подключения к Graylog и YouTrack. Начальные карточки читаются из <code>Navigator/links.csv</code>: Название;Ссылка;Описание. Ссылку можно оставить пустой — получится заметка.</p><p>Правки сохраняются в профиле браузера, исходный CSV не перезаписывается. «Скачать CSV» — резервная копия текущего списка. Импорт добавляет записи и обновляет заметку при совпадении названия и ссылки. После изменения файла в папке расширения нажмите:</p><button id="navigator-refresh" class="secondary" type="button">Обновить CSV</button><p id="navigator-source"></p></details>
+      <input id="navigator-file" type="file" accept=".csv,text/csv" hidden />
+      <dialog id="navigator-editor" class="navigator-dialog" aria-labelledby="navigator-editor-title">
+        <form id="navigator-form"><h2 id="navigator-editor-title">Новая карточка</h2>
+          <label>Название<input id="navigator-name" required maxlength="120" autocomplete="off" /></label>
+          <label>Ссылка<input id="navigator-url" type="url" maxlength="2048" placeholder="https://…" autocomplete="off" /><small>Необязательно. Только http/https; откроется в новой вкладке.</small></label>
+          <label>Описание и личные заметки<textarea id="navigator-description" maxlength="10000" rows="6" placeholder="Зачем нужна ссылка, полезные детали, что стоит помнить…"></textarea></label>
+          <p id="navigator-editor-error" class="navigator-status error" role="alert"></p>
+          <footer><button id="navigator-cancel" class="secondary" type="button">Отмена</button><button id="navigator-save" class="primary" type="submit">Сохранить</button></footer>
+        </form>
+      </dialog>
+    </main>
+    <main id="spam-view">
+    <section id="checker" class="panel" hidden>
+      <div class="controls">
+        <label for="spam-stream-mode">Контур проверки</label>
+        <select id="spam-stream-mode" aria-label="Контур проверки спама">
+          <option value="o" selected>Режим О · 9 streams</option>
+          <option value="r">Режим Р · новый stream</option>
+        </select>
+        <select id="range-seconds">
+          <option value="standard" selected>Стандарт: 11:00–12:00 МСК</option>
+          <option value="3600">Текущий час</option>
+          <option value="21600">6 часов</option>
+          <option value="43200">12 часов</option>
+          <option value="86400">24 часа</option>
+          <option value="172800">48 часов</option>
+          <option value="604800">7 дней</option>
+        </select>
+        <div class="hour-navigation">
+          <button id="previous-hour" class="secondary" type="button" title="Предыдущий час">←</button>
+          <strong id="selected-hour">—</strong>
+          <button id="next-hour" class="secondary" type="button" title="Следующий час">→</button>
+        </div>
+        <button id="run-check" class="primary">Загрузить час</button>
+      </div>
+      <p id="spam-stream-note" class="hint">По умолчанию выбран Режим О: прежние 9 streams. Поиск спама в режиме Р пока недоступен. Проверяется последний завершённый интервал 11:00–12:00 МСК. Фильтр: <code>service-name:online-banking-gateway AND "REQUEST" AND NOT "INTERNAL"</code>. База считается отдельно для каждой пары версия + тип.</p>
+    </section>
+
+    <div id="error" class="error" hidden></div>
+
+    <section id="results" hidden>
+      <div class="summary" id="summary"></div>
+      <div class="filters">
+        <details>
+          <summary id="version-filter-summary">Версии и отметки</summary>
+          <div class="filter-list spam-filter-popover">
+            <div class="spam-filter-tools"><input id="spam-version-search" type="search" placeholder="Найти версию" aria-label="Найти версию"><div class="spam-filter-actions"><button id="spam-version-select-all" type="button" class="secondary compact">Выбрать все</button><button id="spam-version-clear-all" type="button" class="secondary compact">Снять все</button></div><span id="spam-version-matches" class="hint" aria-live="polite"></span></div>
+            <div id="version-filters"></div>
+            <p class="hint">Новая — самая высокая версия отдельно для каждого типа терминала за загруженный час. Отметки не меняются при фильтрации.</p>
+          </div>
+        </details>
+        <details>
+          <summary id="terminal-filter-summary">Типы терминалов</summary>
+          <div class="filter-list spam-filter-popover">
+            <div class="spam-filter-tools"><input id="spam-terminal-search" type="search" placeholder="Найти тип терминала" aria-label="Найти тип терминала"><div class="spam-filter-actions"><button id="spam-terminal-select-all" type="button" class="secondary compact">Выбрать все</button><button id="spam-terminal-clear-all" type="button" class="secondary compact">Снять все</button></div><span id="spam-terminal-matches" class="hint" aria-live="polite"></span></div>
+            <div id="terminal-filters"></div>
+          </div>
+        </details>
+        <button id="reset-filters" class="secondary compact" type="button">Показать все</button>
+      </div>
+      <div class="result-head">
+        <h2>Отклонения</h2>
+        <div class="trace-diagram-actions"><button id="download-spam-csv" class="secondary compact" type="button" disabled>Скачать CSV</button><span id="result-meta"></span></div>
+      </div>
+      <p class="hint">«Всего по URI версии за час» — запросы по initUri внутри указанной версии, суммарно по всем типам терминалов выбранных streams и фильтру проверки. Скрытие типов не меняет итог. «Факт / база» — сравнение версии и конкретного типа. Текущий час считается до момента загрузки.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Риск</th><th>Час</th><th>Версия</th><th>initUri</th><th>Всего по URI версии за час</th><th>Факт / база</th></tr></thead>
+          <tbody id="findings"></tbody>
+        </table>
+      </div>
+    </section>
+    </main>
+
+    <main id="release-view" hidden>
+      <section class="panel monitor-controls">
+        <div class="monitor-control-grid">
+          <label>
+            <span>Контур мониторинга <span class="help-tooltip" tabindex="0" title="Какие streams проверяются" aria-describedby="monitor-stream-mode-help">?<span id="monitor-stream-mode-help" class="help-tooltip-text" role="tooltip">Режим О проверяет прежний рабочий контур из 9 streams. Режим Р проверяет только новый stream. Контуры не смешиваются.</span></span></span>
+            <select id="monitor-stream-mode">
+              <option value="o" selected>Режим О · 9 streams</option>
+              <option value="r">Режим Р · новый stream</option>
+            </select>
+          </label>
+          <label>
+            <span>Режим <span class="help-tooltip" tabindex="0" title="Пояснение алгоритма новизны" aria-describedby="monitor-mode-help">?<span id="monitor-mode-help" class="help-tooltip-text" role="tooltip">«Новое за период» сравнивает текущий и предыдущий периоды. «Проверка релиза» сравнивает две наибольшие версии каждого сервиса внутри выбранного периода, по умолчанию одного часа.</span></span></span>
+            <select id="monitor-mode">
+              <option value="base">Новое за период</option>
+              <option value="release">Проверка релиза</option>
+            </select>
+          </label>
+          <label id="monitor-history-control"><span>Предыдущий период</span><select id="monitor-history-range"><option value="3600">1 час</option><option value="21600">6 часов</option><option value="86400" selected>24 часа</option></select></label>
+          <label>
+            <span>Период</span>
+            <select id="monitor-range">
+              <option value="900">15 минут</option>
+              <option value="1800">30 минут</option>
+              <option value="3600" selected>1 час</option>
+              <option value="7200">2 часа</option>
+              <option value="14400">4 часа</option>
+              <option value="21600">6 часов</option>
+              <option value="43200">12 часов</option>
+              <option value="86400">24 часа</option>
+            </select>
+          </label>
+          <label>
+            <span>Вид графиков</span>
+            <select id="monitor-chart-mode">
+              <option value="bars">Столбцы</option>
+              <option value="lines">Линии</option>
+              <option value="table">Таблица</option>
+            </select>
+          </label>
+          <div class="time-control">
+            <label for="monitor-end">Конец периода · время компьютера</label>
+            <div class="time-control-main"><input id="monitor-end" type="datetime-local" /><button class="secondary time-picker-button" type="button" data-time-picker="monitor-end" title="Открыть календарь и выбор времени" aria-label="Выбрать дату и время окончания мониторинга">Календарь</button><button id="monitor-now" class="secondary now-button" type="button">Сейчас</button></div>
+            <div class="time-shifts" aria-label="Быстро сдвинуть конец периода"><span>Сдвинуть:</span><button class="secondary" type="button" data-time-target="monitor-end" data-time-shift="-900">−15 мин</button><button class="secondary" type="button" data-time-target="monitor-end" data-time-shift="-3600">−1 ч</button><button class="secondary" type="button" data-time-target="monitor-end" data-time-shift="-86400">−1 день</button></div>
+          </div>
+          <div class="monitor-run-actions"><button id="run-monitor" class="primary" type="button">Запустить</button><button id="refresh-monitor" class="secondary" type="button" title="Повторить все запросы без кеша">↻ Обновить</button></div>
+        </div>
+        <p id="monitor-period-preview" class="period-preview"></p>
+        <p id="monitor-mode-note" class="hint">Показывает динамику девяти классов ошибок за выбранный период.</p>
+        <details class="monitor-explanation">
+          <summary>Как определяется одинаковая ошибка?</summary>
+          <p>Сравниваются категория, сервис и признаки из таблицы ниже. Полный текст сообщения не сравнивается. В режиме релиза обе версии ищутся внутри выбранного периода. В режиме сравнения периодов история заканчивается в момент начала текущего периода; её длительность выбирается отдельно.</p>
+          <div class="comparison-table"><table><thead><tr><th>Проверка</th><th>Что должно совпасть</th></tr></thead><tbody id="monitor-grouping-rules"></tbody></table></div>
+          <p>Например, разные SQL-ошибки одного сервиса объединяются в одну группу. Метка «новое» означает новую группу в доступной выборке, а не доказательство появления конкретного текста ошибки впервые. «Новое в релизе» также не доказывает, что причиной был релиз.</p>
+        </details>
+        <p class="security-note">Проверки выполняются последовательно. Для релиза дополнительно запрашиваются только счётчики версий внутри выбранного периода. История нужна лишь для сравнения периодов.</p>
+      </section>
+
+      <div id="monitor-error" class="error" hidden></div>
+      <section class="monitor-overview" aria-label="Сводка мониторинга">
+        <div class="card new-events-card"><span id="new-events-label">Новое за период</span><strong id="new-events-total">—</strong></div>
+        <div class="card high known-events-card"><span id="known-events-label">Встречалось за 24 часа</span><strong id="known-events-total">—</strong></div>
+        <div class="card groups"><span>Всего за период · все версии</span><strong id="events-total">—</strong></div>
+        <div id="release-unknown-card" class="card" hidden><span>Без сравнения релизов</span><strong id="unknown-events-total">—</strong></div>
+      </section>
+      <div class="monitor-actions">
+        <button id="expand-all-monitors" class="secondary compact" type="button">Развернуть всё</button>
+        <button id="collapse-all-monitors" class="secondary compact" type="button">Свернуть всё</button>
+      </div>
+      <section id="monitor-results" class="monitor-results"></section>
+    </main>
+
+    <nav id="search-local-tabs" class="technical-subtabs" aria-label="Поиск по traceId" hidden>
+      <button id="search-trace-tab" class="technical-subtab active" type="button" aria-controls="search-view">Трейс и взаимодействия</button>
+      <button id="search-percentiles-tab" class="technical-subtab" type="button" aria-controls="percentiles-view" title="Процентили ответов gateway по URI текущего trace">Процентили gateway</button>
+    </nav>
+    <button id="percentiles-tab" type="button" aria-controls="percentiles-view" hidden tabindex="-1">Процентили трейса</button>
+    <main id="percentiles-view" hidden>
+      <section class="panel monitor-controls">
+        <div class="percentile-entry-head"><h2>Время ответа gateway</h2><span>P50 · P75 · P95 · P99</span></div>
+        <p id="percentile-trace-context" class="hint percentile-trace-context" role="status"></p>
+        <div id="percentile-prepare-actions" class="percentile-prepare-actions">
+          <button id="prepare-trace-percentiles" class="primary" type="button" disabled>Найти trace и рассчитать</button>
+          <button id="percentile-back-search" class="secondary" type="button">Перейти к поиску trace</button>
+        </div>
+        <div class="percentile-control-grid">
+          <label>
+            <span>Gateway streams (фиксированные)</span>
+            <select id="percentile-stream"></select>
+          </label>
+          <label>
+            <span>Отображение</span>
+            <select id="percentile-chart-mode">
+              <option value="range">Диапазоны</option>
+              <option value="bars">Столбцы</option>
+              <option value="table">Только таблица</option>
+            </select>
+          </label>
+          <label>
+            <span>Период</span>
+            <select id="percentile-range">
+              <option value="900">15 минут</option>
+              <option value="1800">30 минут</option>
+              <option value="3600" selected>1 час</option>
+              <option value="7200">2 часа</option>
+              <option value="21600">6 часов</option>
+              <option value="43200">12 часов</option>
+              <option value="86400">24 часа</option>
+            </select>
+          </label>
+          <div class="time-control">
+            <label for="percentile-end">Конец периода · время компьютера</label>
+            <div class="time-control-main"><input id="percentile-end" type="datetime-local" /><button class="secondary time-picker-button" type="button" data-time-picker="percentile-end" title="Открыть календарь и выбор времени" aria-label="Выбрать дату и время окончания процентилей">Календарь</button><button id="percentile-now" class="secondary now-button" type="button">Сейчас</button></div>
+            <div class="time-shifts" aria-label="Быстро сдвинуть конец периода"><span>Сдвинуть:</span><button class="secondary" type="button" data-time-target="percentile-end" data-time-shift="-900">−15 мин</button><button class="secondary" type="button" data-time-target="percentile-end" data-time-shift="-3600">−1 ч</button><button class="secondary" type="button" data-time-target="percentile-end" data-time-shift="-86400">−1 день</button></div>
+          </div>
+          <button id="run-percentiles" class="primary" type="button" disabled>Рассчитать процентили</button>
+          <div class="percentile-open-actions" hidden><div class="destination-group" title="Открыть в Graylog"><span class="destination-icon graylog-icon">G</span><button id="open-percentiles-graylog" class="secondary" type="button">Поиск</button><button id="open-percentiles-trace" class="secondary" type="button">Трейс</button></div><div class="destination-group" title="Открыть в расширении"><span class="destination-icon extension-icon">A</span><button id="open-percentiles-tool" class="secondary" type="button">Поиск</button><button id="open-percentiles-tool-trace" class="secondary" type="button">Трейс</button></div></div>
+        </div>
+        <p id="percentile-period-preview" class="period-preview"></p>
+        <p id="percentile-context-period-note" class="hint">Первый поиск использует период из «Трейс и взаимодействия». После получения URI период расчёта можно изменить.</p>
+        <p class="hint">Фильтр: <code>service-name: online-banking-gateway AND "RESPONSE"</code>. Используются gateway streams <code>67076246c4c24e10106b636f</code> и <code>6731c46455c2594deb1be5af</code> в одном запросе. Сообщение учитывается, только если в нём присутствуют все перечисленные поля терминала, HTTP, сервиса, trace/span, timestamp, initUri и duration.</p>
+      </section>
+
+      <div id="percentile-error" class="error" hidden></div>
+      <section id="percentile-results" hidden>
+        <div id="percentile-summary" class="percentile-summary"></div>
+        <div class="percentile-toolbar" hidden>
+          <details class="percentile-uri-select">
+            <summary id="percentile-uri-summary">initUri · все</summary>
+            <div class="filter-list">
+              <input id="percentile-uri-option-search" class="percentile-uri-option-search" type="search" autocomplete="off" placeholder="Поиск в списке initUri" aria-label="Поиск в списке initUri" />
+              <label class="filter-option percentile-select-all" title="Отметить или снять только URI, найденные этим поиском"><input id="percentile-uri-select-all" type="checkbox" checked><span>Выбрать всё найденное</span></label>
+              <div id="percentile-uri-options"></div>
+            </div>
+          </details>
+          <button id="percentile-uri-top" class="secondary compact" type="button" title="Локальный выбор десяти URI с наибольшим P99 из полученного ответа">Топ-10 по P99</button>
+          <button id="percentile-uri-reset" class="secondary compact" type="button">Показать все URI</button>
+          <label for="percentile-uri-filter">Фильтр таблицы и графиков</label>
+          <input id="percentile-uri-filter" type="search" autocomplete="off" placeholder="Например /v2/cards" />
+        </div>
+        <p id="percentile-meta" class="hint"></p>
+        <div class="percentile-legend" aria-label="Легенда процентилей">
+          <span class="percentile-key p50">P50</span><span class="percentile-key p75">P75</span><span class="percentile-key p95">P95</span><span class="percentile-key p99">P99</span>
+        </div>
+        <section id="percentile-area-section" class="percentile-focus-section">
+          <div class="result-head"><h2>Процентили длительности ответа</h2><span id="percentile-area-meta" class="muted"></span></div>
+          <p class="hint">P95 означает: 95% учтённых ответов быстрее этого значения или равны ему. Высота столбца показывает время ответа, а не количество событий.</p>
+          <div id="percentile-area-chart" class="percentile-focus-chart"></div>
+        </section>
+        <details class="percentile-section-fold" open><summary>Таблица процентилей</summary>
+        <div id="percentile-table-section" class="table-wrap percentile-table-wrap">
+          <table class="percentile-table">
+            <thead><tr id="percentile-head"><th>initUri</th><th>P50, мс</th><th>P75, мс</th><th>P95, мс</th><th>P99, мс</th><th>Распределение duration</th></tr></thead>
+            <tbody id="percentile-rows"></tbody>
+          </table>
+        </div>
+        </details>
+        <button id="percentile-jump-toggle" class="secondary compact percentile-jump-toggle" type="button" hidden>↓ Перейти к графикам</button>
+      </section>
+    </main>
+
+    <main id="search-view" hidden>
+      <section class="panel safe-search-controls">
+        <div class="query-builder-heading"><label class="search-query-label" for="safe-search-query">Trace ID</label><span class="request-budget">Порциями · по нажатию</span></div>
+        <input id="safe-search-query" type="text" maxlength="128" spellcheck="false" autocomplete="off" placeholder="Например 0123456789abcdef0123456789abcdef" aria-describedby="trace-search-help" />
+        <div class="safe-search-grid">
+          <label><span>Stream</span><select id="safe-search-stream"></select></label>
+          <label><span>Период</span><select id="safe-search-range"><option value="300">5 минут</option><option value="900" selected>15 минут</option><option value="1800">30 минут</option><option value="3600">1 час</option><option value="7200">2 часа</option><option value="21600">6 часов · traceId</option><option value="43200">12 часов · traceId</option><option value="86400">24 часа · traceId</option></select></label>
+          <div class="time-control search-time-control"><label for="safe-search-end">Конец периода · время компьютера</label><div class="time-control-main"><input id="safe-search-end" type="datetime-local" /><button class="secondary time-picker-button" type="button" data-time-picker="safe-search-end" title="Открыть календарь и выбор времени" aria-label="Выбрать дату и время окончания поиска">Календарь</button><button id="safe-search-now" class="secondary now-button" type="button">Сейчас</button></div><div class="time-shifts" aria-label="Быстро сдвинуть конец периода"><span>Сдвинуть:</span><button class="secondary" type="button" data-time-target="safe-search-end" data-time-shift="-900">−15 мин</button><button class="secondary" type="button" data-time-target="safe-search-end" data-time-shift="-3600">−1 ч</button><button class="secondary" type="button" data-time-target="safe-search-end" data-time-shift="-86400">−1 день</button></div></div>
+          <label hidden><span>Поле 1</span><select id="safe-search-group-primary"><option value="service-name" selected>service-name</option><option value="initUri">initUri</option><option value="traceId">traceId · точный поиск</option><option value="level">level</option><option value="httpStatus">httpStatus</option><option value="errorCode">errorCode</option><option value="Terminal-Version">Terminal-Version</option><option value="Terminal-Type">Terminal-Type</option><option value="logger_name">logger_name</option><option value="source">source</option><option value="branch">branch</option><option value="abbrev">abbrev</option></select></label>
+          <label hidden><span>Поле 2</span><select id="safe-search-group-secondary"><option value="">Нет</option><option value="initUri" selected>initUri</option><option value="service-name">service-name</option><option value="level">level</option><option value="httpStatus">httpStatus</option><option value="errorCode">errorCode</option><option value="Terminal-Version">Terminal-Version</option><option value="Terminal-Type">Terminal-Type</option><option value="logger_name">logger_name</option><option value="source">source</option><option value="branch">branch</option><option value="abbrev">abbrev</option></select></label>
+          <label hidden><span>Поле 3</span><select id="safe-search-group-tertiary"><option value="">Нет</option><option value="httpStatus" selected>httpStatus</option><option value="errorCode">errorCode</option><option value="service-name">service-name</option><option value="initUri">initUri</option><option value="level">level</option><option value="Terminal-Version">Terminal-Version</option><option value="Terminal-Type">Terminal-Type</option><option value="logger_name">logger_name</option><option value="source">source</option><option value="branch">branch</option><option value="abbrev">abbrev</option></select></label>
+          <label hidden><span>Лимит групп</span><select id="safe-search-limit"><option value="10">10</option><option value="25" selected>25</option><option value="50">50</option></select></label>
+          <label title="Используется только при построении схемы точного traceId"><span>Норма повторов одного URI в trace</span><select id="trace-service-call-limit"><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option><option value="10">10</option></select></label>
+          <label hidden><span>Отображение</span><select id="safe-search-mode"><option value="bars">Столбцы</option><option value="table">Таблица</option></select></label>
+          <button id="run-safe-search" class="primary" type="button">Найти</button>
+          <div class="trace-primary-action"><button id="show-trace-diagram" class="trace-primary" type="button" disabled><span aria-hidden="true">⑂</span> Построить график</button><small id="trace-action-help">Введите точный traceId</small></div>
+          <button id="open-safe-search-graylog" class="secondary" type="button">Открыть в Graylog ↗</button>
+        </div>
+        <p id="safe-search-period-preview" class="period-preview"></p>
+        <p id="safe-search-stale" class="stale-warning" hidden>Параметры изменены. Ниже остаётся результат предыдущего поиска — нажмите «Найти», чтобы обновить его.</p>
+        <p id="trace-search-help" class="hint">Введите ID или traceId:значение — кавычки необязательны. Сообщения загружаются порциями до 50 с паузой 200 мс после ответа, всего до 200 за выбранный период. Схема появляется по мере загрузки. Процентили gateway — на соседней вкладке, по отдельной кнопке.</p>
+      </section>
+      <div id="safe-search-error" class="error" hidden></div>
+      <section id="safe-search-results" hidden>
+        <section id="trace-timeline" class="trace-timeline" hidden>
+          <div class="result-head"><div><h2>Временная диаграмма traceId</h2><p class="hint">Расположение и длина полос показывают относительный старт и длительность span, как в Jaeger.</p></div><span id="trace-timeline-meta"></span></div>
+          <div class="trace-timeline-tools">
+            <label><span>Фильтр внутри результата</span><input id="trace-timeline-filter" type="search" autocomplete="off" placeholder="Сервис, spanId, HTTP URL или Kafka topic" /></label>
+            <label><span>Показать</span><select id="trace-timeline-mode"><option value="all">Все span</option><option value="failed">Ошибки level:3</option><option value="incomplete">Без REQUEST или RESPONSE</option><option value="repeated">Повторные URL</option><option value="kafka">Kafka produce</option><option value="cache">Кеш Local + Redis</option></select></label>
+          </div>
+          <div id="trace-timeline-quality" class="trace-timeline-quality"></div>
+          <div id="trace-timeline-chart" class="trace-timeline-chart"></div>
+          <section id="trace-timeline-detail" class="trace-timeline-detail" hidden aria-live="polite"></section>
+        </section>
+        <details id="safe-search-raw-details" class="safe-search-raw-details">
+          <summary><strong>Табличная выдача поиска</strong><span>Развернуть группы и количества</span></summary>
+          <div id="safe-search-summary" class="safe-search-summary"></div>
+          <section id="safe-search-details" class="safe-search-details" aria-label="Сводка по выбранным полям"></section>
+          <div class="result-head"><h2>Результаты поиска</h2><div class="trace-diagram-actions"><span id="safe-search-meta"></span></div></div>
+          <div class="table-wrap safe-search-table-wrap"><table><thead><tr id="safe-search-head"></tr></thead><tbody id="safe-search-rows"></tbody></table></div>
+        </details>
+        <section id="trace-diagram" class="trace-diagram" hidden>
+          <div class="result-head"><h2>Маршрут traceId</h2><span id="trace-diagram-meta"></span></div>
+          <div id="trace-diagram-error" class="error" hidden></div>
+          <div id="trace-diagram-flow" class="trace-diagram-flow"></div>
+          <p class="hint">Узлы сгруппированы по <code>service-name + spanId</code> и расположены по времени REQUEST. Верхняя стрелка показывает предполагаемый путь запроса, нижняя — обратный путь RESPONSE. Для точной причинной связи между параллельными ветками нужен отдельный <code>parentSpanId</code>.</p>
+        </section>
+      </section>
+    </main>
+
+    <main id="technical-log-view" hidden>
+      <nav class="technical-subtabs" aria-label="Техническая информация">
+        <button id="technical-queries-tab" class="technical-subtab active" type="button">Запросы Graylog</button>
+        <button id="technical-streams-tab" class="technical-subtab" type="button">Streams</button>
+        <button id="technical-reference-tab" class="technical-subtab" type="button">Справочник</button>
+        <button id="technical-local-ai-tab" class="technical-subtab" type="button">Локальный ИИ <span class="wip-label">WIP</span></button>
+      </nav>
+      <section id="technical-queries-panel">
+        <section class="panel technical-log-panel">
+          <div class="technical-log-head">
+            <div><h2>Вызовы Graylog</h2><p class="hint">Штатный поиск traceId и явно запущенные вызовы расширения. Логин, cookie, host Graylog, идентификаторы запроса и сообщения сюда не попадают.</p></div>
+            <button id="clear-technical-log" class="secondary compact" type="button">Очистить</button>
+          </div>
+          <div id="technical-log-summary" class="technical-log-summary"></div>
+        </section>
+        <div class="table-wrap technical-log-table-wrap">
+          <table>
+            <thead><tr><th>№ / время</th><th>Раздел</th><th>Фильтр</th><th>Stream / период</th><th>Вызов / обработка</th><th>Статус / результат</th><th title="Сколько раз в этой вкладке выполнялся такой же вариант запроса">Повторов запроса</th></tr></thead>
+            <tbody id="technical-log-rows"></tbody>
+          </table>
+        </div>
+      </section>
+      <section id="technical-streams-panel" hidden>
+        <section class="panel stream-manager">
+          <div><h2>Streams для запросов</h2><p id="stream-manager-note" class="hint">Изменения действуют до закрытия вкладки тулы. Обязательный stream процентилей удалить нельзя.</p></div>
+          <form id="add-stream-form" class="stream-add-form">
+            <label for="new-stream-id">Stream ID</label>
+            <input id="new-stream-id" type="text" maxlength="24" autocomplete="off" spellcheck="false" placeholder="24 символа, например 67076246c4c24e10106b636f" />
+            <button class="primary compact" type="submit">Добавить</button>
+            <button id="reset-streams" class="secondary compact" type="button">Стандартный список</button>
+          </form>
+          <div id="stream-manager-error" class="error" hidden></div>
+          <div id="stream-list" class="stream-list"></div>
+        </section>
+      </section>
+      <section id="technical-reference-panel" hidden>
+        <nav class="technical-subtabs reference-kind-tabs" aria-label="Разделы справочника">
+          <button id="reference-system-tab" class="technical-subtab active" type="button">Системные</button>
+          <button id="reference-business-tab" class="technical-subtab" type="button">Бизнесовые</button>
+        </nav>
+        <section id="reference-system-panel">
+          <section class="panel reference-head">
+            <div><h2>Системные ошибки</h2><p class="hint">Локальный справочник известных Java, Spring, WebFlux, сетевых, Redis и SQL-ошибок, используемый при разборе trace.</p></div>
+            <label for="reference-search"><span>Найти в справочнике</span><input id="reference-search" type="search" autocomplete="off" placeholder="Например, NullPointerException или Redis" /></label>
+            <strong id="technical-reference-count" class="reference-count" aria-live="polite"></strong>
+          </section>
+          <div id="system-reference-list" class="reference-list"></div>
+        </section>
+        <section id="reference-business-panel" hidden>
+          <section class="panel business-rules-head">
+            <div><h2>Бизнесовые ошибки</h2><p class="hint">Точное совпадение верхнеуровневого <code>errorCode</code>. Правила текущей вкладки можно импортировать и выгрузить как CSV.</p></div>
+            <div class="business-file-actions"><button id="import-business-rules" class="secondary compact" type="button">Импорт CSV</button><button id="export-business-rules" class="secondary compact" type="button">Скачать CSV</button><input id="business-rules-file" type="file" accept=".csv,text/csv" hidden /></div>
+          </section>
+          <form id="business-rule-form" class="panel business-rule-form">
+            <label>Код errorCode<input id="business-rule-code" type="text" maxlength="64" required placeholder="EXAMPLE" /></label>
+            <label>Название<input id="business-rule-title" type="text" maxlength="100" required placeholder="Example" /></label>
+            <label>Описание<input id="business-rule-meaning" type="text" maxlength="300" required placeholder="Example" /></label>
+            <label>Приоритет<select id="business-rule-priority"><option value="low">Низкий</option><option value="medium">Средний</option><option value="high">Высокий</option></select></label>
+            <button class="primary compact" type="submit">Добавить правило</button>
+          </form>
+          <div id="business-rules-error" class="error" hidden></div>
+          <div id="business-rules-list" class="business-rules-list"></div>
+          <p class="hint">После изменения правил повторно откройте или обновите разбор trace: уже показанный результат не переклассифицируется автоматически. Правила действуют в памяти текущей сессии расширения; для сохранения скачайте CSV.</p>
+          <section id="business-rules-empty" class="panel reference-empty" hidden>
+            <h2>Правил нет</h2><p>Добавьте правило вручную или импортируйте CSV.</p>
+          </section>
+        </section>
+      </section>
+      <section id="technical-local-ai-panel" hidden>
+        <section class="panel local-ai-head">
+          <div>
+            <h2>Локальный анализ trace</h2>
+            <p class="hint">Запрос выполняется только по кнопке и только к <code>127.0.0.1</code> или <code>localhost</code>. Сырые сообщения и идентификаторы не отправляются.</p>
+          </div>
+          <span class="local-only-badge">Только loopback</span>
+        </section>
+        <form id="local-ai-form" class="panel local-ai-form">
+          <label>Протокол<select id="local-ai-provider"><option value="ollama">Ollama</option><option value="openai">OpenAI-compatible</option></select></label>
+          <label>Адрес<input id="local-ai-endpoint" type="url" value="http://127.0.0.1:11434" autocomplete="off" spellcheck="false" /></label>
+          <label>Модель<input id="local-ai-model" type="text" value="qwen2.5:7b" maxlength="120" autocomplete="off" spellcheck="false" /></label>
+          <div class="local-ai-actions"><button id="local-ai-test" class="secondary compact" type="button">Проверить подключение</button><button id="local-ai-analyze" class="primary compact" type="submit" disabled>Анализировать текущий trace</button></div>
+        </form>
+        <div id="local-ai-status" class="local-ai-status" role="status" aria-live="polite">Сначала выполните поиск по traceId.</div>
+        <details class="panel local-ai-preview"><summary>Какие данные получит модель</summary><pre id="local-ai-payload-preview">Трейс ещё не разобран.</pre></details>
+        <section class="panel local-ai-result"><h2>Ответ модели</h2><pre id="local-ai-result">Анализ ещё не запускался.</pre></section>
+      </section>
+    </main>
+
+    </div>
+    </div>
+    <script src="../lib/graylog/clippy-state.js"></script>
+    <script src="shared/sensor-mascot.js"></script>
+    <script src="graylog/clippy.js"></script>
+    <script src="shared/app-shell.js"></script>
+    <script src="graylog/onboarding.js"></script>
+    <script src="graylog/streams.js"></script>
+    <script src="graylog/query-audit.js"></script>
+    <script src="../lib/shared/bounded-cache.js"></script>
+    <script src="../lib/graylog/graylog-constants.js"></script>
+    <script src="../lib/graylog/analyzer.js"></script>
+    <script src="../lib/graylog/release-analysis.js"></script>
+    <script src="../lib/graylog/error-analysis.js"></script>
+    <script src="../lib/graylog/business-error-rules.js"></script>
+    <script src="../lib/graylog/trace-error-catalog.js"></script>
+    <script src="../lib/graylog/java-error-reference.js"></script>
+    <script src="../lib/graylog/integration-error-reference.js"></script>
+    <script src="../lib/graylog/postgres-error-reference.js"></script>
+    <script src="../lib/graylog/kafka-error-reference.js"></script>
+    <script src="../lib/graylog/error-reference.js"></script>
+    <script src="../lib/graylog/exception-chain.js"></script>
+    <script src="../lib/graylog/trace-heuristic-resolver.js"></script>
+    <script src="../lib/graylog/trace-error-timeline.js"></script>
+    <script src="../lib/graylog/trace-errors.js"></script>
+    <script src="../lib/graylog/trace-latency.js"></script>
+    <script src="../lib/graylog/trace-review.js"></script>
+    <script src="../lib/graylog/graylog-trace-fetch.js"></script>
+    <script src="../lib/graylog/local-ai-analysis.js"></script>
+    <script src="../lib/graylog/percentile-analysis.js"></script>
+    <script src="../lib/graylog/search-analysis.js"></script>
+    <script src="../lib/graylog/trace-observability.js"></script>
+    <script src="../lib/graylog/trace-analysis.js"></script>
+    <script src="graylog/time-controls.js"></script>
+    <script src="graylog/percentile-format.js"></script>
+    <script src="graylog/percentile-charts.js"></script>
+    <script src="graylog/chart-interactions.js"></script>
+    <script src="graylog/popup.js"></script>
+    <script src="youtrack/youtrack-launch.js"></script>
+    <script src="../lib/graylog/trace-journal.js"></script><script src="../lib/shared/navigator-data.js"></script>
+    <script src="shared/personal-navigator.js"></script><script src="graylog/trace-journal-view.js"></script>
+    <script src="graylog/release-versions.js"></script>
+    <script src="graylog/release.js"></script>
+    <script src="graylog/percentiles.js"></script>
+    <script src="graylog/trace-error-view.js"></script>
+    <script src="graylog/search.js"></script>
+    <script src="graylog/technical-log.js"></script>
+    <script src="graylog/business-rules.js"></script>
+    <script src="graylog/local-ai.js"></script>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+(function(root){
+  'use strict';
+  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;};
+  function mount(parent,model,{table,pool,poolLink,save}){
+    const T=root.YouTrackTtm,A=root.YouTrackAdvanced,box=el('section',null,'advanced-card advanced-ttm');box.id='advanced-ttm';
+    box.append(el('span','ДЛИТЕЛЬНОСТЬ ПРОЦЕССА','analysis-eyebrow'),el('h3','ТТМ разработки'),el('p','Завершённые и незавершённые задачи считаются отдельно. Статус — на момент сбора; это не только задачи, завершённые за выбранный период.','advanced-caption'));
+    const controls=el('div',null,'advanced-metric-controls');const make=(id,label,values)=>{const input=el('select');input.id=id;for(const [v,l]of values)input.append(new Option(l,v));const wrapper=el('label',label);wrapper.append(input);controls.append(wrapper);return input;};
+    const state=make('ttm-state','Состояние задач',Object.entries(T.labels)),type=make('ttm-type','Тип задачи',[['all','Все типы'],...[...new Set(model.records.map(r=>r.type))].sort().map(t=>[t,t])]),team=make('ttm-team','Команда',[['all','Все команды'],...model.teams.map(t=>[t.id,t.name])]),group=make('ttm-group','Сравнить по',[['type','Типам задач'],['team','Командам'],['release','Релизам']]);team.disabled=!model.teams.length;box.append(controls);
+    const body=el('div');box.append(body);parent.append(box);let current,defs;
+    function draw(){
+      current=T.view(model,{state:state.value,type:type.value,team:team.value,group:group.value});defs=T.sections(model,current,A.fmt,pool);body.replaceChildren();const s=current.summary;
+      const cards=el('div',null,'advanced-kpis');for(const [title,value,note]of [['Данные для расчёта',`${s.n} / ${s.total}`,'Задачи с корректным ТТМ / задачи выбранного состояния'],['Типичная длительность',s.n?A.fmt(s.median)+' ч':'Нет данных','Медиана: у половины задач ТТМ не больше этого значения'],['У 90% задач не больше',s.n?A.fmt(s.p90)+' ч':'Нет данных','P90: верхняя граница для 90% наблюдений этой выборки'],['Дольше P90',String(s.tail.length),'Относительно этой выборки, не нарушение норматива']]){const c=el('article',null,'advanced-kpi');c.append(el('span',title),el('strong',value),el('p',note));cards.append(c);}body.append(cards);
+      const notes=[];if(s.n<10)notes.push(s.n?'Мало данных: '+s.n+' задач. P90 близок к максимуму — не делайте вывод о стабильности процесса.':'Нет корректного ТТМ для выбранных условий.');if(current.state==='open')notes.push('Это накопленное значение незавершённых задач: оно ещё может вырасти.');if(current.state==='unknown')notes.push('Статус этих задач не определён; они не включаются в завершённые или незавершённые.');if(type.value==='all')notes.push('Для сравнения похожих задач выберите конкретный тип.');notes.push(`Без поля: ${s.missing}; некорректных: ${s.invalid}; нулевой ТТМ: ${s.zero}. Нули включены в расчёт.`);body.append(el('p',notes.join(' '),'advanced-notice'));
+      const links=el('div',null,'actions');for(const [label,ids]of [['Задачи с ТТМ',s.ids],['Дольше P90',s.tail]]){const key=pool('ТТМ · '+label,ids),link=key&&poolLink(key);if(link){link.firstChild&&link.tagName==='A'&&(link.textContent=label+' · '+ids.length+' ↗');links.append(link);}}body.append(links);
+      const chart=T.chart(current),chartBox=el('div',null,'advanced-bars');chartBox.append(el('h4','Типичная длительность по группам'),el('p','Полосы — медиана в часах. P90 и число задач сравнивайте в таблице.','advanced-caption'));
+      const sorted=chart.allRows.slice().sort((a,b)=>b.values[0].value-a.values[0].value).slice(0,8),max=Math.max(0,...sorted.map(r=>r.values[0].value));
+      for(const r of sorted){const row=el('div',null,'advanced-bar-row'),label=el('div',null,'advanced-bar-label'),track=el('div',null,'advanced-bar-track'),fill=el('div');label.append(el('span',r.label),el('strong',A.fmt(r.values[0].value)+' ч'));fill.style.width=(max?r.values[0].value/max*100:0)+'%';track.append(fill);row.append(label,track);chartBox.append(row);}if(!sorted.length)chartBox.append(el('p','Нет значений для графика.'));
+      const png=el('button','Скачать ТТМ · PNG','advanced-text-button');png.type='button';png.disabled=!sorted.length;png.addEventListener('click',()=>{const canvas=el('canvas');root.YouTrackSensorView.draw({...chart,rows:sorted},canvas);canvas.toBlob(blob=>blob&&save(blob,'sensor-ttm.png'),'image/png');});chartBox.append(png);body.append(chartBox);
+      body.append(el('h4','Сравнение с учётом полноты данных'));if(current.overlap)body.append(el('p','Задача может входить в несколько групп. Не складывайте их количества; общий расчёт использует уникальные задачи.','advanced-caption'));table(body,defs[2]);root.YouTrackSensorHelp?.attach(box,'Как рассчитан ТТМ',defs[0].paragraphs.join(' '));
+    }
+    for(const input of [state,type,team,group])input.addEventListener('change',draw);draw();
+    return {snapshot:()=>({sections:structuredClone(defs),chart:T.chart(current)})};
+  }
+  root.YouTrackTtmView={mount};
+})(globalThis);

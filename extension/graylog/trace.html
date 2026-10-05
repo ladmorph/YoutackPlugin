@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Дерево traceId</title>
+    <link rel="stylesheet" href="../shared/design-tokens.css" />
+    <link rel="stylesheet" href="trace.css" />
+    <link rel="stylesheet" href="trace-steps.css" />
+    <link rel="stylesheet" href="trace-error-view.css" />
+    <link rel="stylesheet" href="clippy.css" />
+  </head>
+  <body>
+    <header>
+      <div class="trace-heading">
+        <div><h1>Дерево traceId</h1><p id="trace-query">Загружаю данные…</p><strong id="trace-total-duration" class="trace-total-duration" hidden></strong></div>
+        <div id="trace-stream-scope" class="trace-stream-scope" hidden>
+          <label for="trace-stream-select"><span>Состав графа</span><select id="trace-stream-select" aria-describedby="trace-stream-count"><option value="all">Весь trace · все системы</option><option value="configured" disabled>Мои 10 streams · рабочий контур</option></select></label>
+          <button id="trace-stream-help" type="button" aria-label="Помощь по составу графа — объяснит Сенсор" title="Помощь по составу графа">?</button>
+          <small id="trace-stream-count" aria-live="polite">Локальный фильтр · без нового запроса Graylog</small>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="trace-primary-navigation" role="group" aria-label="Навигация по графу"><button id="zoom-start" type="button" title="Показать первый шаг · Home">К началу</button><button id="zoom-fit" type="button" title="Вписать всю схему по ширине и высоте">Вписать</button></div>
+        <button id="play-trace-flow" class="playback" type="button" title="По шагам показать путь REQUEST, RESPONSE, кеш и Kafka" aria-pressed="false">▶ Проиграть путь</button>
+        <button id="trace-playback-speed" type="button" title="Ускорить проигрывание" aria-label="Скорость проигрывания: обычная">1×</button>
+        <span id="trace-playback-status" class="trace-playback-status" aria-live="polite" hidden></span>
+        <button id="stop-trace-flow" type="button" title="Остановить проигрывание и показать всю схему" disabled>■ Стоп</button>
+        <details class="trace-more-controls">
+          <summary>Ещё</summary>
+          <div class="trace-more-menu">
+            <span class="trace-control-group-title">Масштаб</span>
+            <div class="trace-zoom-controls"><button id="zoom-out" type="button" title="Уменьшить">−</button><button id="zoom-reset" type="button" title="Вернуть масштаб 100%">100%</button><span id="zoom-level" aria-live="polite">100%</span><button id="zoom-in" type="button" title="Увеличить">+</button></div>
+            <span class="trace-control-group-title">Отображение</span>
+            <button id="toggle-trace-flow" type="button" title="Приостановить постоянный светящийся поток" aria-pressed="true">⏸ Поток</button>
+            <label class="trace-follow-control"><input id="trace-follow" type="checkbox" checked> Следовать за шагом</label>
+            <button id="reset-layout" type="button" title="Вернуть автоматическое расположение веток" disabled>Вернуть расположение</button>
+            <span class="trace-control-group-title">Экспорт</span>
+            <button id="show-trace-uml" type="button" title="Построить локальную UML sequence diagram из открытого трейса" disabled>Построить UML</button>
+            <button id="download-png" class="download" type="button" disabled>Скачать PNG</button>
+            <span id="download-status" class="download-status" aria-live="polite"></span>
+          </div>
+        </details>
+      </div>
+      <section id="trace-local-tools" class="trace-local-tools" aria-label="Локальный обзор схемы" hidden>
+        <div id="trace-summary" class="trace-summary" aria-live="polite"></div>
+        <div class="trace-assumption-control">
+          <button id="trace-assumption-toggle" type="button" aria-pressed="false" disabled>Сопоставить предположения</button>
+          <small id="trace-assumption-status" aria-live="polite">Локально · без запросов Graylog</small>
+        </div>
+        <div class="trace-diagnostics-control">
+          <button id="download-trace-diagnostics" type="button" title="Локальный JSON: последовательность и связи до/после предположений. Имена, URI и идентификаторы заменены; сообщений и тел запросов нет.">Скачать диагностику · временно</button>
+          <small id="trace-diagnostics-status" role="status">Обезличенный JSON · без запросов к Graylog</small>
+        </div>
+        <div class="trace-filter-controls">
+          <label class="trace-filter-search" for="trace-local-search"><span>Найти в схеме</span><input id="trace-local-search" type="search" autocomplete="off" placeholder="Сервис, spanId, URI, ключ кеша или Kafka topic" /></label>
+          <details class="trace-filter-disclosure">
+            <summary>Фильтры</summary>
+            <div class="trace-filter-options">
+              <label for="trace-local-mode"><span>Подсветить</span><select id="trace-local-mode"><option value="all">Все блоки</option><option value="issues">Все проблемы</option><option value="level3">Ошибки level 3</option><option value="repeated">Повторные URI</option><option value="incomplete">Незавершённые</option><option value="kafka">Kafka</option><option value="cache">Кеш Local + Redis</option></select></label>
+              <label class="trace-latency-control" for="trace-latency-threshold"><span>Медленно, если больше (мс)</span><input id="trace-latency-threshold" type="number" min="1" max="86400000" step="1" value="3000" title="Локальный порог. Не меняет запросы и статус ошибки." /></label>
+              <span id="trace-filter-count" class="trace-filter-count" aria-live="polite">0 из 0 блоков</span>
+              <button id="trace-filter-reset" class="trace-filter-reset" type="button" title="Очистить локальный поиск и показать все блоки">Сбросить</button>
+            </div>
+          </details>
+        </div>
+      </section>
+      <section id="trace-duplicate-summary" class="trace-duplicate-summary" aria-live="polite" hidden></section>
+    </header>
+    <div class="trace-workspace">
+      <div id="trace-error" class="error" hidden></div>
+      <main tabindex="0" id="trace-canvas" aria-label="Дерево вызовов traceId"></main>
+      <section id="trace-minimap" class="trace-minimap" aria-label="Обзор всей схемы" hidden>
+        <div><strong>Обзор</strong><span id="trace-minimap-meta"></span></div>
+        <canvas id="trace-minimap-canvas" width="260" height="84" tabindex="0" aria-label="Миникарта схемы. Кликните или перетащите обзор; стрелки клавиатуры перемещают видимую область."></canvas>
+      </section>
+    </div>
+    <footer><span class="request-key">→ REQUEST</span><span class="response-key">← RESPONSE</span><span class="assumption-key">┄ ПРЕДПОЛОЖЕНИЕ</span><span class="filtered-association-key">┄ связь через скрытые блоки</span><details><summary>Управление схемой и обозначения</summary><p>Пустой фон: перемещение левой кнопкой мыши. Ctrl/⌘ + колесо или жест сведения пальцев: масштаб под указателем. Обычная прокрутка и тачпад перемещают обзор. «К началу» / Home показывает первый шаг; «Вписать» / F — всю схему; + / − меняет масштаб; 0 — 100%. Клавиши работают при фокусе на схеме. Номер карточки обозначает блок; порядок событий показан в панели «Шаги». Подпись «Из №» объединяет вызовы одного источника. Нажатие на карточку выделяет её связь. Перетаскивание за номер и заголовок перемещает ветку, «Вернуть расположение» сбрасывает её. «Следовать за шагом» управляет камерой при проигрывании. Жёлтый пунктир «ПРЕДПОЛОЖЕНИЕ» появляется только после явного нажатия и не считается наблюдаемым REQUEST/RESPONSE. Красный — level 3. Серый точечный путь в режиме десяти streams сохраняет только ближайшее видимое родство через скрытые span-блоки и не обозначает сетевой вызов.</p></details></footer>
+    <dialog id="trace-uml-dialog" class="trace-uml-dialog" aria-labelledby="trace-uml-title">
+      <section class="trace-uml-shell">
+        <div class="trace-uml-toolbar">
+          <div><h2 id="trace-uml-title">UML sequence diagram</h2><p id="trace-uml-meta"></p></div>
+          <form method="dialog"><button id="close-trace-uml" type="submit" value="close">Закрыть</button></form>
+        </div>
+        <div class="trace-uml-legend" aria-label="Обозначения UML">
+          <span class="request-key">→ HTTP method + URI</span><span class="response-key">⇠ status + duration + № request</span><span class="trace-uml-cache-key">→ LOCAL / REDIS + operation + masked key</span><span class="trace-uml-kafka-key">→ PRODUCE / CONSUME + topic</span><small>Body, trace/span, offset и partition не переносятся; URI и ключи маскируются.</small>
+        </div>
+        <div id="trace-uml-canvas" class="trace-uml-canvas" tabindex="0" aria-label="Прокручиваемая UML sequence diagram"></div>
+      </section>
+    </dialog>
+    <script src="../../lib/graylog/error-analysis.js"></script>
+    <script src="../../lib/graylog/trace-error-catalog.js"></script>
+    <script src="../../lib/graylog/java-error-reference.js"></script>
+    <script src="../../lib/graylog/integration-error-reference.js"></script>
+    <script src="../../lib/graylog/postgres-error-reference.js"></script>
+    <script src="../../lib/graylog/kafka-error-reference.js"></script>
+    <script src="../../lib/graylog/error-reference.js"></script>
+    <script src="../../lib/graylog/exception-chain.js"></script>
+    <script src="../../lib/graylog/trace-heuristic-resolver.js"></script>
+    <script src="../../lib/graylog/trace-error-timeline.js"></script>
+    <script src="../../lib/graylog/trace-errors.js"></script>
+    <script src="../../lib/graylog/trace-latency.js"></script>
+    <script src="../../lib/graylog/trace-error-graph.js"></script>
+    <script src="../../lib/graylog/trace-review.js"></script>
+    <script src="../../lib/graylog/trace-uml.js"></script>
+    <script src="../../lib/graylog/trace-stream-filter.js"></script>
+    <script src="../../lib/graylog/trace-observability.js"></script>
+    <script src="../../lib/graylog/trace-assumption-matcher.js"></script>
+    <script src="../../lib/graylog/trace-diagnostics.js"></script>
+    <script src="../../lib/graylog/clippy-state.js"></script>
+    <script src="../shared/sensor-mascot.js"></script>
+    <script src="clippy.js"></script>
+    <script src="trace-error-view.js"></script>
+    <script src="trace-steps.js"></script>
+  <link rel="stylesheet" href="trace-playback-context.css">
+  <script src="trace-playback-context.js"></script>
+  <script src="../../lib/graylog/trace-playback-timing.js"></script>
+  <script src="streams.js"></script>
+  <script src="../../lib/graylog/trace-application-groups.js"></script>
+  <script src="../../lib/graylog/trace-call-groups.js"></script>
+  <script src="trace-call-groups.js"></script><script src="trace.js"></script>
+  </body>
+</html>

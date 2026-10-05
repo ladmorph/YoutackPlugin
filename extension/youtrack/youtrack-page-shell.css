@@ -1,0 +1,79 @@
+.youtrack-shared-page{max-width:none;margin:0;padding:0 0 48px;background:#f5f6fa;font:14px/1.5 'Segoe UI',Arial,sans-serif;color:#252637}
+.youtrack-shared-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px max(24px,calc((100vw - 1280px)/2));background:#fff;border-bottom:1px solid #dcdde7}
+.youtrack-shared-header span{font-size:11px;font-weight:700;color:#6545d8;letter-spacing:1.4px}.youtrack-shared-header h1{font-size:30px;margin:4px 0}.youtrack-shared-header p{margin:0;color:#5b5e72}
+.youtrack-shared-header{box-sizing:border-box;min-height:140px}.youtrack-shared-header h1{line-height:36px;font-weight:700;letter-spacing:-.3px}.youtrack-shared-header p{font-size:14px;line-height:21px}
+.youtrack-shared-header button{border:1px solid #d6cef4;background:#efebff;color:#5433c4;border-radius:12px;padding:10px 16px;min-height:44px;font:600 14px 'Segoe UI',sans-serif}
+.youtrack-shared-page .reference-nav{position:sticky;top:0;z-index:60;margin:0 0 24px;padding:12px max(24px,calc((100vw - 1280px)/2));display:flex;flex-wrap:wrap;gap:8px;background:#faf9ff;border-bottom:1px solid #dcdde7;box-shadow:0 2px 8px #25344312}
+.youtrack-shared-page .reference-nav a,.youtrack-shared-page .reference-nav button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;font:650 14px/1.4 'Segoe UI',sans-serif;color:#5433c4;border:1px solid #dcdde7;border-radius:12px;background:#fff;text-decoration:none;cursor:pointer}
+.youtrack-shared-page .reference-nav [aria-current=page],.youtrack-shared-page .reference-nav [aria-expanded=true]{color:#fff;background:#6545d8;border-color:#6545d8}
+.youtrack-shared-page .reference-nav button:hover,.youtrack-shared-page .reference-nav a:not([aria-current]):hover{background:#efebff;color:#5433c4;border-color:#b4a3ed}
+.youtrack-shared-page> .panel,.youtrack-shared-page> .app-header,.youtrack-shared-page> #report-view{width:calc(100% - 48px);max-width:1280px;margin-left:auto;margin-right:auto}
+.youtrack-shared-page>.yt-header,.youtrack-shared-page .app-header>h1,.youtrack-shared-page .app-header>.subtitle{display:none}
+.youtrack-shared-page>.yt-tabs{position:static;max-width:1280px;margin:0 auto 20px;padding:0 24px;border:0;background:none}
+.youtrack-shared-page>#report-view{padding:0}.youtrack-shared-page>.yt-tabs{width:calc(100% - 48px);padding:0}.youtrack-shared-page #tab-log{display:none}
+.youtrack-shared-page .yt-cal-popup{z-index:1000;box-sizing:border-box;width:300px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto;border-radius:16px;border:1px solid #d6cef4;box-shadow:0 12px 36px #25263725;padding:12px;font-size:14px}
+.youtrack-shared-page .yt-cal-popup button{min-height:0;height:34px;padding:0;border-radius:8px;font-size:14px;line-height:1;font-weight:600;box-shadow:none}.youtrack-shared-page .yt-cal-popup .yt-cal-day{width:100%}.youtrack-shared-page .yt-cal-popup .yt-cal-nav{width:34px}.youtrack-shared-page .yt-cal-popup .yt-cal-grid{gap:4px}
+.youtrack-shared-page button.yt-date-btn:hover,.youtrack-shared-page button.yt-date-btn:focus{background:#fff;color:#252637;border-color:#6545d8}.youtrack-shared-page .yt-cal-popup .yt-cal-day:hover{background:#efebff;color:#5433c4}.youtrack-shared-page .yt-cal-popup .yt-cal-day.selected{background:#6545d8;color:#fff}
+.reference-tour{box-sizing:border-box;width:min(480px,calc(100vw - 32px));padding:28px;border:1px solid #d6cef4;border-radius:20px;background:#fff;color:#252637;box-shadow:0 24px 80px #25263730}.reference-tour::backdrop{background:#25263760}.reference-tour p{font-size:15px;line-height:1.7}.reference-tour small{color:#6545d8}.reference-tour h2{font-size:23px;margin:10px 0}.reference-tour .tour-actions{display:flex;justify-content:space-between;gap:12px;margin-top:24px}.reference-tour .tour-close{float:right;background:#efebff;color:#5433c4}.reference-tour [data-back]{background:#efebff;color:#5433c4}
+@media(max-width:700px){.youtrack-shared-header{padding:20px 16px;flex-wrap:wrap}.youtrack-shared-header h1{font-size:26px}.youtrack-shared-page .reference-nav{padding:10px 16px}.youtrack-shared-page .reference-nav a,.youtrack-shared-page .reference-nav button{font-size:13px;padding:9px 10px}.youtrack-shared-page>.panel,.youtrack-shared-page>.app-header,.youtrack-shared-page>#report-view{width:calc(100% - 32px)}.youtrack-shared-page>.yt-tabs{padding:0 16px;flex-wrap:wrap}}
+@media(max-width:700px){.youtrack-shared-page>.yt-tabs{width:calc(100% - 32px);padding:0}}
+#youtrack-flow{position:fixed;right:20px;bottom:20px;z-index:80;display:flex;gap:12px;align-items:flex-start;box-sizing:border-box;width:340px;max-width:calc(100vw - 32px);padding:20px;border:1px solid #c9bdee;border-radius:20px;background:#fff;box-shadow:0 8px 32px #25263722;color:#252637;font:14px/1.5 'Segoe UI',sans-serif}
+#youtrack-flow img{object-fit:contain;flex:none}#youtrack-flow strong{display:block;padding-right:12px;font-size:16px}#youtrack-flow p{margin:8px 0 12px;color:#57596c}#youtrack-flow button{background:#efebff;color:#5433c4;border:1px solid #d6cef4;border-radius:10px;font:600 13px 'Segoe UI',sans-serif;min-height:34px;padding:7px 10px}#youtrack-flow .flow-hide{position:absolute;right:6px;top:6px;padding:2px 8px;min-height:26px}
+#youtrack-flow.collapsed{width:44px;height:44px;padding:0}#youtrack-flow.collapsed img,#youtrack-flow.collapsed .flow-copy{display:none}#youtrack-flow.collapsed .flow-hide{inset:0;border-radius:14px}
+.flow-target{outline:3px solid #168f8a!important;outline-offset:4px;box-shadow:0 0 0 7px #168f8a15!important}
+.youtrack-shared-page:has(#youtrack-flow){padding-bottom:240px}@media(max-width:700px){#youtrack-flow{right:16px;bottom:12px;width:calc(100% - 32px);padding:16px}#youtrack-flow img{width:36px;height:36px}#youtrack-flow strong{font-size:15px}}
+.sensor-project{margin-top:24px}.sensor-project>h3{background:#d9e7ce;padding:12px 16px;border-radius:12px;color:#252637}.sensor-project details{border:1px solid #dcdde7;border-radius:16px;padding:16px;margin:12px 0}.sensor-project summary{font-size:16px;font-weight:650;cursor:pointer}.sensor-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:20px}.sensor-metric{text-align:center;padding:20px;border:1px solid #e8e6ef;border-radius:16px;background:#faf9fc}.sensor-metric-circle{display:inline-flex;align-items:center;justify-content:center;min-width:92px;height:92px;padding:8px;border-radius:50%;font-size:19px;font-weight:700;color:#252637;box-sizing:border-box}.sensor-metric-circle.yellow{background:#fce7a6}.sensor-metric-circle.pink{background:#f6c7ce}.sensor-metric-circle.neutral{background:white;border:2px solid #dcdde7}.sensor-metric h4{margin:14px 0 8px;font-size:15px}.sensor-metric p{font-size:13px;line-height:1.6;color:#57596c}.sensor-metric .export-btn{margin-top:8px}
+@media(max-width:900px){.sensor-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:500px){.sensor-metric-grid{grid-template-columns:1fr}}
+
+.sensor-controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.sensor-team-toggle{margin-left:16px}.flow-project-hint{margin:12px 0;padding:12px;border:1px solid #9dd5d1;border-radius:12px;background:#f0faf9}.flow-project-hint p{margin-top:0}.flow-project-hint button{margin:4px}#reference-sensor-content[hidden],.flow-project-hint[hidden]{display:none!important}
+.reference-nav [aria-disabled=true]{opacity:.5;cursor:not-allowed!important}#youtrack-history h2{margin:0;font-size:20px}#youtrack-history p,#youtrack-history small{font-size:12px;color:#57596c}.history-entry{padding:12px 0;border-bottom:1px solid #e8e6ef;display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px}.history-entry small{grid-column:2}.history-entry button{white-space:normal;overflow-wrap:anywhere;text-align:left}.history-entry [aria-pressed=true]{outline:2px solid #168f8a}.history-compare{margin-top:16px;width:100%}.history-table-wrap{overflow:auto}#history-comparison{scroll-margin-top:100px}#history-comparison button{margin:4px}#history-comparison[hidden]{display:none!important}@media(max-width:1100px){.history-list{max-height:240px;overflow:auto}}
+
+#history-comparison table{width:100%;border-collapse:collapse;font-size:14px;min-width:620px}#history-comparison th,#history-comparison td{padding:12px 16px;text-align:right;border-bottom:1px solid #e6e3ef;font-variant-numeric:tabular-nums}#history-comparison th:first-child,#history-comparison td:first-child{text-align:left}#history-comparison th{background:#efebfa;color:#493878}#history-comparison tbody tr:nth-child(even){background:#faf9fd}#history-comparison h3{margin-top:28px;padding:12px 16px;background:#eaf4f3;border-radius:12px}#history-comparison td:nth-child(4){font-weight:650;color:#5433c4}.history-entry button{background:#f8f6ff!important;color:#493878!important;border:1px solid #dcd5f2!important}.history-entry [aria-pressed=true]{background:#eaf4f3!important;color:#205b57!important}
+
+/* История отчётов: выезжающая панель, закрыта по умолчанию. */
+.history-backdrop{position:fixed;inset:0;z-index:81;background:rgba(30,32,48,.24)}
+.history-backdrop[hidden]{display:none}
+#youtrack-history{position:fixed;right:0;left:auto;top:0;bottom:0;width:320px;max-width:86vw;margin:0;padding:0;overflow:auto;box-sizing:border-box;z-index:82;background:#fff;border:0;border-left:1px solid #e5e6ef;border-radius:0;box-shadow:-12px 0 40px rgba(23,40,50,.16);transform:translateX(100%);visibility:hidden;transition:transform .22s ease,visibility .22s ease}
+#youtrack-history.open{transform:none;visibility:visible}
+
+.history-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px;background:#fff;border-bottom:1px solid #eceaf3}
+#youtrack-history h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6a6c80}
+.history-close{font:400 20px/1 'Segoe UI',sans-serif;cursor:pointer;color:#6a6c80;background:transparent;border:0;border-radius:8px;padding:4px 8px}
+.history-close:hover{background:#f4f2fa;color:#253443}
+#youtrack-history .history-note{margin:14px 16px 6px;font-size:11.5px;line-height:1.5;color:#8a8c9d}
+.history-list{padding:0 16px}
+.history-entry{display:block;padding:8px 0;border-bottom:1px solid #f0eef6}
+.history-entry:last-child{border-bottom:0}
+.history-entry button{display:block;width:100%;border:0;background:transparent;padding:7px 9px;border-radius:10px;font:600 13px 'Segoe UI',sans-serif;color:#253443;text-align:left;cursor:pointer;white-space:normal;overflow-wrap:anywhere}
+.history-entry button:hover{background:#f4f2fa}
+.history-entry button[aria-pressed=true]{outline:0;background:#e7f4f3;color:#0f6f6b}
+.history-entry small{display:block;padding:2px 9px 0;font-size:11.5px;line-height:1.45;color:#8a8c9d;overflow-wrap:anywhere}
+#youtrack-history .history-status{margin:12px 16px 18px;font-size:11.5px;color:#57596c}
+#youtrack-history .history-status:empty{display:none}
+@media(prefers-reduced-motion:reduce){#youtrack-history{transition:none}}
+@media(max-width:1100px){#youtrack-history{width:300px}}
+
+/* Разделы: левая панель, которую можно скрыть. */
+body.youtrack-shared-page.with-rail{padding-left:232px;transition:padding-left .2s ease}
+body.youtrack-shared-page.with-rail.rail-hidden{padding-left:0}
+#youtrack-rail,#youtrack-rail *{box-sizing:border-box}
+#youtrack-rail{position:fixed;left:0;top:0;bottom:0;width:232px;z-index:75;box-sizing:border-box;display:flex;flex-direction:column;gap:4px;padding:16px 14px;overflow:auto;background:#faf9ff;border-right:1px solid #dcdde7;box-shadow:2px 0 10px rgba(37,52,67,.05);transform:translateX(0);transition:transform .2s ease,visibility .2s ease}
+body.rail-hidden #youtrack-rail{transform:translateX(-100%);visibility:hidden}
+.rail-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 2px 10px}
+.rail-title{font:700 11px/1 'Segoe UI',sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#8a8c9d}
+.rail-collapse{font:400 20px/1 'Segoe UI',sans-serif;cursor:pointer;color:#6a6c80;background:transparent;border:0;border-radius:8px;padding:4px 8px}
+.rail-collapse:hover{background:#efebff;color:#5433c4}
+#youtrack-rail .reference-nav,.youtrack-shared-page #youtrack-rail .reference-nav{position:static;display:flex;flex-direction:column;flex-wrap:nowrap;gap:6px;margin:0;padding:0;background:none;border:0;box-shadow:none}
+#youtrack-rail .reference-nav a,#youtrack-rail .reference-nav button,.youtrack-shared-page #youtrack-rail .reference-nav a,.youtrack-shared-page #youtrack-rail .reference-nav button{justify-content:flex-start;text-align:left;width:100%;min-height:40px;padding:9px 12px;font-size:13.5px;border-radius:10px}
+#youtrack-rail-open{position:fixed;left:12px;top:12px;z-index:76;display:none;cursor:pointer;font:400 18px/1 'Segoe UI',sans-serif;color:#5433c4;background:#fff;border:1px solid #dcdde7;border-radius:12px;padding:9px 12px;box-shadow:0 8px 20px rgba(37,52,67,.1)}
+#youtrack-rail-open:hover{background:#efebff}
+body.rail-hidden #youtrack-rail-open{display:block}
+@media(prefers-reduced-motion:reduce){#youtrack-rail,body.youtrack-shared-page.with-rail{transition:none}}
+@media(max-width:900px){body.youtrack-shared-page.with-rail{padding-left:0}#youtrack-rail{box-shadow:0 12px 40px rgba(23,40,50,.18)}#youtrack-rail-open{display:block}body:not(.rail-hidden) #youtrack-rail-open{opacity:.65}}
+
+/* Кнопка истории стоит в шапке рядом с подсказкой — как равноправное действие. */
+.youtrack-shared-header .header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.report-history-bar{display:flex;justify-content:flex-end;padding:4px 0 2px}
+.history-open-button{font:650 14px/1 inherit;font-family:inherit;cursor:pointer;color:#5433c4;background:#efebff;border:1px solid transparent;border-radius:12px;padding:10px 16px;min-height:40px;white-space:nowrap}
+.history-open-button:hover{background:#e2dbff}
+.history-open-button[aria-expanded=true]{color:#fff;background:#6545d8;border-color:#6545d8}
