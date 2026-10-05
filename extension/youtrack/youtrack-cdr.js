@@ -1,4 +1,3 @@
-
 // Раздел «ЦДР»: задачи, на которые когда-либо навешивали тег, сгруппированные по полю задачи.
 // Данные берутся только из YouTrack REST API с токеном текущей сессии; сохраняются лишь настройки формы.
 (() => {
@@ -290,45 +289,60 @@
     } finally { state.running = false; state.controller = null; $('cdr-run').disabled = false; $('cdr-stop').disabled = true; }
   }
 
+  // ---------- таблица результатов ----------
+  function initials(label) {
+    if (label === EMPTY) return '?';
+    const parts = label.replace(/[^\p{L}\p{N}\s]/gu, '').trim().split(/\s+/).filter(Boolean);
+    return ((parts[0]?.[0] || '?') + (parts.length > 1 ? parts[1][0] : '')).toUpperCase();
+  }
   function render(tagged, tag, field) {
     const byAuthorMode = field === AUTHOR;
     const head = $('cdr-head'), body = $('cdr-rows');
     head.replaceChildren(); body.replaceChildren();
-    const columns = [['Значение поля', 'cdr-name'], ['Задач', 'cdr-num'], ['Тег навешивали, раз', 'cdr-num']];
-    if (!byAuthorMode) columns.push(['Кто навешивал (раз)', 'cdr-who']);
-    columns.push(['Задачи', 'cdr-act']);
+    const columns = [['Значение поля', 'cdr-name'], ['Задач', 'cdr-num'], ['Навешиваний', 'cdr-num']];
+    if (!byAuthorMode) columns.push(['Кто навешивал', 'cdr-who']);
     for (const [name, cls] of columns) head.append(el('th', name, cls));
+    head.children[2].title = 'Сколько раз тег был навешен на задачи группы';
     $('cdr-result-title').textContent = `Тег «${tag}» · группировка: ${byAuthorMode ? 'автор тега' : field}`;
     for (const row of state.rows) {
-      const tr = el('tr');
-      tr.append(el('td', row.label, 'cdr-name'), el('td', String(row.count), 'cdr-num'), el('td', String(row.adds), 'cdr-num'));
-      if (!byAuthorMode) tr.append(el('td', row.who.map(([who, n]) => `${who} × ${n}`).join(', '), 'cdr-who'));
-      const toggle = el('button', 'Показать', 'cdr-btn'); toggle.type = 'button'; toggle.setAttribute('aria-expanded', 'false');
-      const cell = el('td', null, 'cdr-act'); cell.append(toggle); tr.append(cell);
+      const tr = el('tr', null, 'cdr-row');
+      tr.tabIndex = 0; tr.setAttribute('role', 'button'); tr.setAttribute('aria-expanded', 'false');
+      const nameCell = el('td', null, 'cdr-name'), wrap = el('div', null, 'cdr-name-wrap');
+      wrap.append(el('span', '▸', 'cdr-chev'), el('span', initials(row.label), 'cdr-avatar' + (row.label === EMPTY ? ' empty' : '')), el('span', row.label, 'cdr-label'));
+      nameCell.append(wrap);
+      const tasks = el('td', null, 'cdr-num'), adds = el('td', null, 'cdr-num');
+      tasks.append(el('span', String(row.count), 'cdr-pill'));
+      adds.append(el('span', String(row.adds), 'cdr-pill accent'));
+      tr.append(nameCell, tasks, adds);
+      if (!byAuthorMode) {
+        const whoCell = el('td', null, 'cdr-who'), list = el('div', null, 'cdr-who-list');
+        for (const [who, n] of row.who) { const chip = el('span', `${who} × `, 'cdr-who-chip'); chip.append(el('b', String(n))); list.append(chip); }
+        whoCell.append(list); tr.append(whoCell);
+      }
       const detail = el('tr', null, 'cdr-detail'); detail.hidden = true;
       const holder = el('td'); holder.colSpan = columns.length;
-      const list = el('ul', null, 'cdr-issues');
+      const box = el('div', null, 'cdr-detail-body'), list = el('ul', null, 'cdr-issues');
       for (const issue of row.issues) {
-        const li = el('li'), a = el('a', issue.idReadable); a.href = `${ORIGIN}/issue/${encodeURIComponent(issue.idReadable)}`; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        const li = el('li'), a = el('a', issue.idReadable);
+        a.href = `${ORIGIN}/issue/${encodeURIComponent(issue.idReadable)}`; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        li.append(a);
+        if (issue.summary) li.append(el('span', issue.summary, 'cdr-issue-summary'));
         const who = sortedAuthors(issue.byAuthor).map(([name, n]) => n > 1 ? `${name} × ${n}` : name).join(', ');
-        li.append(a, document.createTextNode(`${issue.summary ? ` — ${issue.summary}` : ''}`), el('span', ` · навешивал: ${who}`, 'cdr-muted')); list.append(li);
+        li.append(el('span', `Навешивал: ${who}`, 'cdr-muted'));
+        list.append(li);
       }
-      holder.append(list); detail.append(holder);
-      toggle.addEventListener('click', () => { detail.hidden = !detail.hidden; toggle.textContent = detail.hidden ? 'Показать' : 'Скрыть'; toggle.setAttribute('aria-expanded', String(!detail.hidden)); });
+      box.append(list); holder.append(box); detail.append(holder);
+      const toggle = () => { detail.hidden = !detail.hidden; tr.classList.toggle('open', !detail.hidden); tr.setAttribute('aria-expanded', String(!detail.hidden)); };
+      tr.addEventListener('click', toggle);
+      tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
       body.append(tr, detail);
     }
-    const adds = tagged.reduce((n, i) => n + i.events, 0);
-    $('cdr-total').textContent = `Уникальных задач: ${tagged.length} · всего навешиваний тега: ${adds}`;
+    const adds = tagged.reduce((n, i) => n + i.events, 0), totals = $('cdr-total');
+    totals.replaceChildren();
+    for (const [label, value] of [['Уникальных задач', tagged.length], ['Навешиваний тега', adds], ['Групп', state.rows.length]]) {
+      const kpi = el('span', `${label} `, 'cdr-kpi'); kpi.append(el('b', String(value))); totals.append(kpi);
+    }
     $('cdr-result').hidden = false;
-  }
-
-  function exportCsv() {
-    const quote = v => `"${String(v).replace(/"/g, '""')}"`;
-    const lines = [['Группа', 'Задач', 'Навешиваний', 'Кто навешивал', 'Задачи'].map(quote).join(';')];
-    for (const row of state.rows) lines.push([row.label, row.count, row.adds, row.who.map(([w, n]) => `${w} x${n}`).join(', '), row.issues.map(i => i.idReadable).join(' ')].map(quote).join(';'));
-    const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob), link = document.createElement('a');
-    link.href = url; link.download = 'cdr.csv'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   async function refreshConnection() {
@@ -349,7 +363,6 @@
     $('cdr-connect').addEventListener('click', refreshConnection);
     $('cdr-run').addEventListener('click', run);
     $('cdr-stop').addEventListener('click', () => state.controller?.abort());
-    $('cdr-export').addEventListener('click', exportCsv);
     for (const id of ['cdr-tag', 'cdr-field']) $(id).addEventListener('change', saveSettings);
     $('cdr-field-options').append(Object.assign(document.createElement('option'), { value: AUTHOR }));
     renderProjects();

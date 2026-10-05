@@ -51,17 +51,16 @@
     <p id="cdr-error" class="error" role="alert" hidden></p>
   </section>
   <section id="cdr-result" class="panel" hidden aria-labelledby="cdr-result-title">
-    <div class="panel-header-row">
+    <div class="cdr-result-head">
       <h2 id="cdr-result-title"></h2>
-      <button id="cdr-export" class="cdr-btn" type="button">CSV</button>
+      <div id="cdr-total" class="cdr-kpis"></div>
     </div>
-    <div class="reference-table-scroll">
+    <div class="cdr-card">
       <table class="cdr-table">
         <thead><tr id="cdr-head"></tr></thead>
         <tbody id="cdr-rows"></tbody>
       </table>
     </div>
-    <p id="cdr-total" class="hint"></p>
   </section>
 </main>
 <script src="../feature-flags.js"></script>

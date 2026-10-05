@@ -3,21 +3,45 @@
 .cdr-btn:hover{background:#efebff;border-color:#b4a3ed}
 .cdr-btn.primary{background:#6545d8;border-color:#6545d8;color:#fff}
 .cdr-btn.primary:hover{background:#5433c4}
-.cdr-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px}
-.cdr-table th,.cdr-table td{padding:12px;border-bottom:1px solid #dcdde7;vertical-align:middle;overflow-wrap:anywhere}
-.cdr-table th{background:#eee8f7;color:#4a3b62;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-.cdr-table .cdr-name{width:24%;text-align:left}
-.cdr-table .cdr-num{width:11%;text-align:center;font-variant-numeric:tabular-nums}
-.cdr-table td.cdr-name{font-weight:650}
-.cdr-table .cdr-who{text-align:left}
-.cdr-table .cdr-act{width:130px;text-align:center}
-.cdr-table td.cdr-act .cdr-btn{min-height:36px;padding:6px 12px;font-size:13px}
-.cdr-detail td{background:#faf9fd}
-.cdr-issues{margin:0;padding-left:20px;font-size:13px;line-height:1.7}
-.cdr-issues a{color:#6545d8}
-.cdr-muted{color:#737586}
 .error{color:#b92e2e;font-size:13px}
-@media(max-width:700px){.cdr-table{table-layout:auto}}
+
+/* Таблица результатов */
+.cdr-result-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.cdr-result-head h2{margin:0;font-size:18px}
+.cdr-kpis{display:flex;flex-wrap:wrap;gap:8px}
+.cdr-kpi{display:inline-flex;align-items:baseline;gap:6px;padding:6px 12px;border-radius:999px;background:#f4f1fb;color:#4a3b62;font-size:12.5px}
+.cdr-kpi b{font-size:15px;color:#5433c4;font-variant-numeric:tabular-nums}
+.cdr-card{border:1px solid #e6e3f0;border-radius:16px;overflow:hidden;background:#fff}
+.cdr-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:14px}
+.cdr-table thead th{padding:12px 16px;background:#f4f1fb;color:#6a5b87;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #e6e3f0;text-align:left}
+.cdr-table th.cdr-num,.cdr-table td.cdr-num{width:130px;text-align:center}
+.cdr-table th.cdr-name,.cdr-table td.cdr-name{width:32%}
+.cdr-table tbody td{padding:14px 16px;border-bottom:1px solid #f0eef6;vertical-align:middle;overflow-wrap:anywhere}
+.cdr-row{cursor:pointer;transition:background .15s}
+.cdr-row:hover{background:#faf8ff}
+.cdr-row:focus-visible{outline:2px solid #6545d8;outline-offset:-2px}
+.cdr-row.open{background:#f6f2ff}
+.cdr-name-wrap{display:flex;align-items:center;gap:12px;min-width:0}
+.cdr-chev{flex:none;width:12px;color:#b0a6c9;font-size:11px;transition:transform .2s}
+.cdr-row.open .cdr-chev{transform:rotate(90deg);color:#6545d8}
+.cdr-avatar{flex:none;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:#ece7fb;color:#5433c4;font-size:12px;font-weight:700}
+.cdr-avatar.empty{background:#f1f2f5;color:#8a8f98}
+.cdr-label{font-weight:650;color:#252637;min-width:0}
+.cdr-pill{display:inline-block;min-width:34px;padding:4px 12px;border-radius:999px;background:#eef1f6;color:#3d4250;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.cdr-pill.accent{background:#ece7fb;color:#5433c4}
+.cdr-who-list{display:flex;flex-wrap:wrap;gap:6px}
+.cdr-who-chip{padding:3px 10px;border-radius:999px;background:#f6f7f9;border:1px solid #eceef1;color:#454758;font-size:12.5px}
+.cdr-who-chip b{color:#5433c4;font-weight:700}
+.cdr-detail td{padding:0!important;background:#faf9fd;border-bottom:1px solid #f0eef6}
+.cdr-detail-body{padding:14px 16px 18px 76px}
+.cdr-issues{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px;margin:0;padding:0;list-style:none}
+.cdr-issues li{padding:10px 12px;border:1px solid #ece9f5;border-radius:10px;background:#fff;font-size:13px;line-height:1.45}
+.cdr-issues a{color:#6545d8;font-weight:700;text-decoration:none}
+.cdr-issues a:hover{text-decoration:underline}
+.cdr-issue-summary{display:block;color:#252637;margin-top:2px}
+.cdr-muted{display:block;margin-top:2px;color:#737586;font-size:12px}
+@media(max-width:700px){.cdr-table{table-layout:auto}.cdr-detail-body{padding-left:16px}.cdr-table th.cdr-num,.cdr-table td.cdr-num{width:auto}}
+
 /* Стили полей, чипов проектов, дат и календаря — как в «Отчётах» (youtrack-reference.js → injectStyles) */
 :root{--yt-ink:#202124;--yt-muted:#737577;--yt-blue-hover:#245ed7}
 .yt-chip-list { display:flex; flex-wrap:wrap; gap:8px; }
