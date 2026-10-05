@@ -4,10 +4,10 @@
   'use strict';
   const ORIGIN = 'https://youtrack-mapps.sovcombank.ru';
   const SETTINGS_KEY = 'youtrackCdrSettings';
-  const DEFAULTS = Object.freeze({ tag: 'Pasha', field: '$Разработчик', projects: [], from: '', to: '', pageSize: 1000, filter: '' });
+  const DEFAULTS = Object.freeze({ tag: 'Pasha', field: '$Разработчик', projects: [], from: '', to: '' });
   const AUTHOR = '[автор тега]';
   const EMPTY = '— не указано —';
-  const ISSUE_CHUNK = 40, MAX_REQUESTS = 3000;
+  const PAGE_SIZE = 500, ISSUE_CHUNK = 40, MAX_REQUESTS = 3000;
   const norm = value => String(value ?? '').trim().toLocaleLowerCase('ru');
   const fieldKey = value => norm(value).replace(/^\$/, '');
 
@@ -64,12 +64,10 @@
       .map(g => ({ label: g.label, count: g.issues.length, adds: g.adds, who: sortedAuthors(g.who), issues: g.issues.sort((a, b) => a.idReadable.localeCompare(b.idReadable, 'en', { numeric: true })) }))
       .sort((a, b) => b.adds - a.adds || b.count - a.count || a.label.localeCompare(b.label, 'ru'));
   }
-  // Серверный фильтр задач для /api/activities: только выбранные проекты (+ необязательный запрос пользователя).
-  function issueQuery(projects, extra) {
+  // Серверный фильтр задач для /api/activities: только выбранные проекты.
+  function issueQuery(projects) {
     const names = projects.map(p => /^[\w-]+$/.test(p.shortName || '') ? p.shortName : `{${String(p.name).replace(/[{}]/g, '')}}`);
-    const base = `project: ${names.join(', ')}`;
-    const more = String(extra || '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim();
-    return more ? `${base} ${more}` : base;
+    return `project: ${names.join(', ')}`;
   }
   const api = Object.freeze({ norm, personLabel, fieldValues, collectTagged, aggregate, issueQuery, sortedAuthors, AUTHOR, EMPTY });
   globalThis.YouTrackCdr = api;
@@ -141,7 +139,7 @@
     for (const [k, v] of Object.entries(params || {})) url.searchParams.set(k, String(v));
     const response = await fetcher(url.toString(), { signal, headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
     if (response.status === 401 || response.status === 403) throw new Error('YouTrack отклонил токен. Нажмите «Обновить подключение».');
-    if (response.status === 400) throw new Error('YouTrack не принял запрос (HTTP 400). Проверьте «Доп. фильтр задач» и поле группировки.');
+    if (response.status === 400) throw new Error('YouTrack не принял запрос (HTTP 400). Проверьте выбранные проекты и поле группировки.');
     if (!response.ok) throw new Error(`YouTrack вернул HTTP ${response.status}`);
     return response.json();
   }
@@ -154,16 +152,16 @@
       out.push(...chunk);
       if (onPage) onPage(request + 1, out.length);
     }
-    throw new Error('Слишком много событий. Сузьте период или добавьте фильтр задач.');
+    throw new Error('Слишком много событий. Сузьте период или выберите меньше проектов.');
   }
 
   // ---------- настройки и проекты ----------
   async function readSettings() {
     const stored = (await chrome.storage.local.get(SETTINGS_KEY))[SETTINGS_KEY] || {};
     const field = !stored.field || stored.field === 'Разработчик' ? DEFAULTS.field : stored.field;
-    return { ...DEFAULTS, ...stored, field, tag: stored.tag || DEFAULTS.tag, projects: Array.isArray(stored.projects) ? stored.projects : [] };
+    return { ...DEFAULTS, from: stored.from || '', to: stored.to || '', field, tag: stored.tag || DEFAULTS.tag, projects: Array.isArray(stored.projects) ? stored.projects : [] };
   }
-  const saveSettings = () => chrome.storage.local.set({ [SETTINGS_KEY]: { tag: $('cdr-tag').value.trim(), field: $('cdr-field').value.trim(), projects: [...state.selected], from: state.dates.from, to: state.dates.to, pageSize: Number($('cdr-size').value) || DEFAULTS.pageSize, filter: $('cdr-filter').value.trim() } });
+  const saveSettings = () => chrome.storage.local.set({ [SETTINGS_KEY]: { tag: $('cdr-tag').value.trim(), field: $('cdr-field').value.trim(), projects: [...state.selected], from: state.dates.from, to: state.dates.to } });
 
   function renderProjects() {
     const box = $('cdr-projects'), query = norm($('cdr-project-search').value);
@@ -217,9 +215,7 @@
   // ---------- запуск ----------
   async function run() {
     if (state.running) return;
-    const tag = $('cdr-tag').value.trim(), field = $('cdr-field').value.trim(), extra = $('cdr-filter').value;
-    const size = Math.min(5000, Math.max(50, Math.round(Number($('cdr-size').value) || DEFAULTS.pageSize)));
-    $('cdr-size').value = size;
+    const tag = $('cdr-tag').value.trim(), field = $('cdr-field').value.trim();
     if (!state.selected.size) return showError('Выберите хотя бы один проект.');
     if (!tag) return showError('Укажите тег.');
     if (!field) return showError('Укажите поле для группировки.');
@@ -230,11 +226,11 @@
     const signal = state.controller.signal;
     try {
       const chosen = state.projects.filter(p => state.selected.has(p.id));
-      const params = { categories: 'TagsCategory', issueQuery: issueQuery(chosen, extra), fields: 'id,timestamp,author(id,login,fullName),added(id,name),target(id,idReadable,project(id,name,shortName))' };
+      const params = { categories: 'TagsCategory', issueQuery: issueQuery(chosen), fields: 'id,timestamp,author(id,login,fullName),added(id,name),target(id,idReadable,project(id,name,shortName))' };
       if (state.dates.from) params.start = Date.parse(`${state.dates.from}T00:00:00.000Z`);
       if (state.dates.to) params.end = Date.parse(`${state.dates.to}T23:59:59.999Z`);
       setStatus('Читаю историю тегов…');
-      const activities = await pages('/api/activities', params, size, signal, (n, count) => setStatus(`История тегов: запросов ${n}, событий ${count}…`));
+      const activities = await pages('/api/activities', params, PAGE_SIZE, signal, (n, count) => setStatus(`История тегов: запросов ${n}, событий ${count}…`));
       const tagged = collectTagged(activities, tag, state.selected);
       const details = new Map();
       if (tagged.length && field !== AUTHOR) {
@@ -305,7 +301,7 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     const settings = await readSettings();
-    $('cdr-tag').value = settings.tag; $('cdr-field').value = settings.field; $('cdr-size').value = settings.pageSize; $('cdr-filter').value = settings.filter;
+    $('cdr-tag').value = settings.tag; $('cdr-field').value = settings.field;
     state.dates = { from: settings.from, to: settings.to };
     for (const [key, id] of [['from', 'cdr-from'], ['to', 'cdr-to']]) { const b = $(id); b.textContent = formatDate(state.dates[key]); b.addEventListener('click', () => openCalendar(b, key)); }
     state.selected = new Set(settings.projects);
@@ -317,7 +313,7 @@
     $('cdr-run').addEventListener('click', run);
     $('cdr-stop').addEventListener('click', () => state.controller?.abort());
     $('cdr-export').addEventListener('click', exportCsv);
-    for (const id of ['cdr-tag', 'cdr-field', 'cdr-size', 'cdr-filter']) $(id).addEventListener('change', saveSettings);
+    for (const id of ['cdr-tag', 'cdr-field']) $(id).addEventListener('change', saveSettings);
     $('cdr-field-options').append(Object.assign(document.createElement('option'), { value: AUTHOR }));
     renderProjects();
     if (await loadToken()) loadProjects(); else showError('Нет подключения к YouTrack. Нажмите «Обновить подключение» или откройте отчёт иконкой расширения на вкладке YouTrack.');
