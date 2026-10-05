@@ -16,12 +16,13 @@
       const status=document.getElementById('connection-state');if(status)header.append(status);
       if(fields)document.getElementById('tab-report').textContent='Настройка';
     }
-    // Раздел «ЦДР» добавляется во все навигации (панель «Разделы»).
+    // Раздел «ЦДР» добавляется во все навигации (панель «Разделы») в одинаковом порядке:
+    // всегда перед «Network и запросы» (на странице Network это ссылка, на остальных — кнопка).
     const sharedNav=document.querySelector('.reference-nav');
     if(sharedNav&&!sharedNav.querySelector('[href="youtrack-cdr.html"]')){
       const link=document.createElement('a');link.href='youtrack-cdr.html';link.textContent='ЦДР';
       if(cdr)link.setAttribute('aria-current','page');
-      const anchor=sharedNav.querySelector('button');
+      const anchor=sharedNav.querySelector('button,a[href="youtrack-network.html"]');
       if(anchor)anchor.before(link);else sharedNav.append(link);
     }
     document.body.classList.add('youtrack-shared-page');
