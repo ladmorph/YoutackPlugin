@@ -13,27 +13,30 @@
   <section class="panel" aria-labelledby="cdr-title">
     <div class="panel-header-row">
       <h2 id="cdr-title">ЦДР</h2>
-      <button id="cdr-connect" class="quiet" type="button">Обновить подключение</button>
+      <button id="cdr-connect" class="cdr-btn" type="button">Обновить подключение</button>
     </div>
-    <p class="hint">Ищет в выбранных проектах все задачи, на которые когда-либо был добавлен тег, и считает их по значению выбранного поля. Одна задача учитывается один раз в каждой группе.</p>
+    <p class="hint">Ищет в выбранных проектах все задачи, на которые когда-либо навешивали тег, и считает их по значению выбранного поля. Задача входит в группу один раз; отдельно считается, сколько раз тег навешивали.</p>
     <div class="cdr-grid">
       <label>Тег<input id="cdr-tag" type="text" maxlength="100" autocomplete="off"></label>
       <label>Поле для группировки<input id="cdr-field" type="text" maxlength="100" list="cdr-field-options" autocomplete="off"></label>
-      <label>События с даты (необязательно)<input id="cdr-from" type="date"></label>
+      <label>События с<button id="cdr-from" class="yt-date-btn" type="button"></button></label>
+      <label>События по<button id="cdr-to" class="yt-date-btn" type="button"></button></label>
+      <label>Размер порции (50–5000)<input id="cdr-size" type="number" min="50" max="5000" step="50"></label>
+      <label class="cdr-wide">Доп. фильтр задач (запрос YouTrack, необязательно)<input id="cdr-filter" type="text" maxlength="300" placeholder="например: State: Open" autocomplete="off"></label>
     </div>
     <datalist id="cdr-field-options"></datalist>
     <h3>Проекты</h3>
     <div class="cdr-toolbar">
       <input id="cdr-project-search" type="search" placeholder="Поиск проекта" aria-label="Поиск проекта">
-      <button id="cdr-select-all" class="quiet" type="button">Выбрать показанные</button>
-      <button id="cdr-clear" class="quiet" type="button">Сбросить</button>
-      <button id="cdr-reload" class="quiet" type="button">Обновить список</button>
+      <button id="cdr-select-all" class="cdr-btn" type="button">Выбрать показанные</button>
+      <button id="cdr-clear" class="cdr-btn" type="button">Снять выбор</button>
+      <button id="cdr-reload" class="cdr-btn" type="button">Обновить список</button>
       <span id="cdr-selected-count" class="hint"></span>
     </div>
     <div id="cdr-projects" class="cdr-chips"></div>
     <div class="cdr-actions">
-      <button id="cdr-run" class="build-btn" type="button">Построить</button>
-      <button id="cdr-stop" class="quiet" type="button" disabled>Остановить</button>
+      <button id="cdr-run" class="cdr-btn primary" type="button">Построить</button>
+      <button id="cdr-stop" class="cdr-btn" type="button" disabled>Остановить</button>
     </div>
     <p id="cdr-status" class="status" role="status"></p>
     <p id="cdr-error" class="error" role="alert" hidden></p>
@@ -41,11 +44,11 @@
   <section id="cdr-result" class="panel" hidden aria-labelledby="cdr-result-title">
     <div class="panel-header-row">
       <h2 id="cdr-result-title"></h2>
-      <button id="cdr-export" class="export-btn" type="button">CSV</button>
+      <button id="cdr-export" class="cdr-btn" type="button">CSV</button>
     </div>
     <div class="reference-table-scroll">
       <table class="cdr-table">
-        <thead><tr><th>#</th><th>Значение поля</th><th>Задач</th><th>Доля</th><th>Задачи</th></tr></thead>
+        <thead><tr id="cdr-head"></tr></thead>
         <tbody id="cdr-rows"></tbody>
       </table>
     </div>
