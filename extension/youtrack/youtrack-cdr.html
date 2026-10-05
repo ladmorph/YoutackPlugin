@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YouTrack · ЦДР</title>
+<link rel="stylesheet" href="youtrack-reference.css">
+<link rel="stylesheet" href="youtrack-page-shell.css">
+<link rel="stylesheet" href="youtrack-cdr.css">
+</head>
+<body>
+<main class="cdr-main">
+  <section class="panel" aria-labelledby="cdr-title">
+    <div class="panel-header-row">
+      <h2 id="cdr-title">ЦДР</h2>
+      <button id="cdr-connect" class="quiet" type="button">Обновить подключение</button>
+    </div>
+    <p class="hint">Ищет в выбранных проектах все задачи, на которые когда-либо был добавлен тег, и считает их по значению выбранного поля. Одна задача учитывается один раз в каждой группе.</p>
+    <div class="cdr-grid">
+      <label>Тег<input id="cdr-tag" type="text" maxlength="100" autocomplete="off"></label>
+      <label>Поле для группировки<input id="cdr-field" type="text" maxlength="100" list="cdr-field-options" autocomplete="off"></label>
+      <label>События с даты (необязательно)<input id="cdr-from" type="date"></label>
+    </div>
+    <datalist id="cdr-field-options"></datalist>
+    <h3>Проекты</h3>
+    <div class="cdr-toolbar">
+      <input id="cdr-project-search" type="search" placeholder="Поиск проекта" aria-label="Поиск проекта">
+      <button id="cdr-select-all" class="quiet" type="button">Выбрать показанные</button>
+      <button id="cdr-clear" class="quiet" type="button">Сбросить</button>
+      <button id="cdr-reload" class="quiet" type="button">Обновить список</button>
+      <span id="cdr-selected-count" class="hint"></span>
+    </div>
+    <div id="cdr-projects" class="cdr-chips"></div>
+    <div class="cdr-actions">
+      <button id="cdr-run" class="build-btn" type="button">Построить</button>
+      <button id="cdr-stop" class="quiet" type="button" disabled>Остановить</button>
+    </div>
+    <p id="cdr-status" class="status" role="status"></p>
+    <p id="cdr-error" class="error" role="alert" hidden></p>
+  </section>
+  <section id="cdr-result" class="panel" hidden aria-labelledby="cdr-result-title">
+    <div class="panel-header-row">
+      <h2 id="cdr-result-title"></h2>
+      <button id="cdr-export" class="export-btn" type="button">CSV</button>
+    </div>
+    <div class="reference-table-scroll">
+      <table class="cdr-table">
+        <thead><tr><th>#</th><th>Значение поля</th><th>Задач</th><th>Доля</th><th>Задачи</th></tr></thead>
+        <tbody id="cdr-rows"></tbody>
+      </table>
+    </div>
+    <p id="cdr-total" class="hint"></p>
+  </section>
+</main>
+<script src="../feature-flags.js"></script>
+<script src="youtrack-reference-network.js"></script>
+<script src="youtrack-cdr.js"></script>
+<script src="youtrack-page-shell.js"></script>
+</body>
+</html>
