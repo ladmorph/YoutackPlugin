@@ -3,21 +3,30 @@
   'use strict';
   const fields=location.pathname.endsWith('youtrack-fields.html');
   const network=location.pathname.endsWith('youtrack-network.html');
+  const cdr=location.pathname.endsWith('youtrack-cdr.html');
   document.addEventListener('DOMContentLoaded',()=>{
     const header=document.createElement('header');header.className='youtrack-shared-header';
     header.innerHTML='<div><span>UNIVERSASL SENSOR HELPER</span><h1>+ YouTrack</h1><p>Отчёты по работе команд</p></div>';
-    if(!fields&&!network){const help=document.createElement('button');help.id='reference-onboarding-start';help.type='button';help.textContent='? Как здесь работать';help.addEventListener('click',startTour);header.append(help);}
+    if(!fields&&!network&&!cdr){const help=document.createElement('button');help.id='reference-onboarding-start';help.type='button';help.textContent='? Как здесь работать';help.addEventListener('click',startTour);header.append(help);}
     document.body.prepend(header);
-    if(fields){
+    if(fields||cdr){
       const nav=document.createElement('nav');nav.className='reference-nav';nav.setAttribute('aria-label','Разделы YouTrack');
-      nav.innerHTML='<a href="youtrack.html">Отчёт</a><a href="youtrack-fields.html" aria-current="page">Дополнительно · по полям</a><button type="button">Network и запросы</button>';
+      nav.innerHTML='<a href="youtrack.html">Отчёт</a><a href="youtrack-fields.html"'+(fields?' aria-current="page"':'')+'>Дополнительно · по полям</a><button type="button">Network и запросы</button>';
       nav.querySelector('button').dataset.youtrackView='network';header.after(nav);
       const status=document.getElementById('connection-state');if(status)header.append(status);
-      document.getElementById('tab-report').textContent='Настройка';
+      if(fields)document.getElementById('tab-report').textContent='Настройка';
+    }
+    // Раздел «ЦДР» добавляется во все навигации (панель «Разделы»).
+    const sharedNav=document.querySelector('.reference-nav');
+    if(sharedNav&&!sharedNav.querySelector('[href="youtrack-cdr.html"]')){
+      const link=document.createElement('a');link.href='youtrack-cdr.html';link.textContent='ЦДР';
+      if(cdr)link.setAttribute('aria-current','page');
+      const anchor=sharedNav.querySelector('button');
+      if(anchor)anchor.before(link);else sharedNav.append(link);
     }
     document.body.classList.add('youtrack-shared-page');
     document.getElementById('reference-network-toggle')?.setAttribute('data-youtrack-view','network');
-    document.querySelectorAll('.reference-nav a').forEach(a=>{const file=a.getAttribute('href');a.dataset.youtrackView=file==='youtrack.html'?'report':file==='youtrack-fields.html'?'fields':'network';});
+    document.querySelectorAll('.reference-nav a').forEach(a=>{const file=a.getAttribute('href');if(file==='youtrack-cdr.html')return;a.dataset.youtrackView=file==='youtrack.html'?'report':file==='youtrack-fields.html'?'fields':'network';});
     document.querySelectorAll('[data-youtrack-view="fields"]').forEach(a=>{a.removeAttribute('href');a.removeAttribute('data-youtrack-view');a.setAttribute('aria-disabled','true');a.setAttribute('tabindex','-1');a.title='Отчёт по полям временно недоступен';});
     document.addEventListener('click',event=>{const control=event.target.closest('[data-youtrack-view]');if(!control)return;event.preventDefault();chrome.runtime.sendMessage({type:'open-youtrack-view',view:control.dataset.youtrackView});});
     // Hide the fixed calendar on page/ancestor scrolling, but allow its own scrolling.
