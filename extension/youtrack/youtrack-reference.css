@@ -18,7 +18,10 @@ body #ytFetchBtn,body #ytApplyPresetBtn,body #ytSavePresetBtn{background:#6545d8
 body #ytFetchBtn:hover,body #ytApplyPresetBtn:hover,body #ytSavePresetBtn:hover{background:#5433c4}
 body button:disabled{background:#e8e7ed!important;border-color:#e8e7ed!important;color:#777586!important;cursor:not-allowed}
 body .reference-nav [aria-current],body .reference-nav [aria-expanded=true]{background:#6545d8;border-color:#6545d8}
-body .yt-date-btn{border-radius:12px;min-height:44px;border-color:#dcdde7;font-family:inherit;color:#252637}
+body .yt-date-btn{border-radius:12px;min-height:44px;border-color:#dcdde7;font-family:inherit;color:#252637;font-weight:400}
+body.youtrack-shared-page .yt-cal-popup button.yt-cal-day{font-weight:400}
+body.youtrack-shared-page .yt-cal-popup button.yt-cal-day.today{font-weight:700}
+body.youtrack-shared-page .yt-cal-popup button.yt-cal-nav{font-weight:400}
 body .yt-chip.selected{background:#efebff!important;border-color:#b4a3ed!important;color:#5433c4!important}
 body .metric-link,body .yt-issue-link{color:#6545d8}#chartPanel{border-radius:20px}#chartPanel .hint{line-height:1.6}
 @media(max-width:700px){body .panel-header-row>div{flex-wrap:wrap}body .export-btn{font-size:13px;padding:9px 11px}body .yt-actions{flex-wrap:wrap}}
