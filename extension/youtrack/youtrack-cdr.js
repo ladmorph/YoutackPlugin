@@ -1,3 +1,4 @@
+
 // Раздел «ЦДР»: задачи, на которые когда-либо навешивали тег, сгруппированные по полю задачи.
 // Данные берутся только из YouTrack REST API с токеном текущей сессии; сохраняются лишь настройки формы.
 (() => {
@@ -76,52 +77,84 @@
   // ---------- интерфейс ----------
   const $ = id => document.getElementById(id);
   const el = (tag, text, cls) => { const n = document.createElement(tag); if (text != null) n.textContent = text; if (cls) n.className = cls; return n; };
-  const state = { projects: [], selected: new Set(), running: false, controller: null, rows: [], dates: { from: '', to: '' } };
+  const state = { projects: [], selected: new Set(), running: false, controller: null, rows: [] };
   const fetcher = (url, init) => (globalThis.YouTrackReferenceNetwork?.fetch || fetch)(url, init);
   const setStatus = (text, kind) => { const n = $('cdr-status'); n.textContent = text; n.dataset.kind = kind || ''; };
   const showError = message => { const n = $('cdr-error'); n.textContent = message || ''; n.hidden = !message; };
-  const formatDate = iso => iso ? iso.split('-').reverse().join('.') : 'Не выбрана';
 
-  // ---------- календарь в стиле отчётов (классы yt-date-btn / yt-cal-*) ----------
-  const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
-  const pad = n => String(n).padStart(2, '0');
-  function closeCalendar() { document.querySelector('.yt-cal-popup')?.remove(); }
-  globalThis.YouTrackReferenceCalendar = Object.freeze({ close: closeCalendar });
-  function openCalendar(button, key) {
-    closeCalendar();
-    const popup = el('div', null, 'yt-cal-popup'); popup.dataset.forBtn = button.id;
-    const current = state.dates[key] ? new Date(`${state.dates[key]}T00:00:00Z`) : new Date();
-    let year = current.getUTCFullYear(), month = current.getUTCMonth();
-    const choose = iso => { state.dates[key] = iso; button.textContent = formatDate(iso); saveSettings(); closeCalendar(); };
-    const draw = () => {
-      popup.replaceChildren();
-      const nav = el('div', null, 'yt-cal-head');
-      const prev = el('button', '‹', 'yt-cal-nav'), next = el('button', '›', 'yt-cal-nav');
-      prev.type = next.type = 'button'; prev.setAttribute('aria-label', 'Предыдущий месяц'); next.setAttribute('aria-label', 'Следующий месяц');
-      prev.onclick = () => { month--; if (month < 0) { month = 11; year--; } draw(); };
-      next.onclick = () => { month++; if (month > 11) { month = 0; year++; } draw(); };
-      nav.append(prev, el('strong', `${MONTHS[month]} ${year}`), next);
-      const grid = el('div', null, 'yt-cal-grid');
-      for (const d of ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']) grid.append(el('span', d, 'yt-cal-dow'));
-      const offset = (new Date(Date.UTC(year, month, 1)).getUTCDay() + 6) % 7, days = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-      for (let i = 0; i < offset; i++) grid.append(el('span'));
-      for (let day = 1; day <= days; day++) {
-        const iso = `${year}-${pad(month + 1)}-${pad(day)}`, b = el('button', String(day), 'yt-cal-day' + (iso === state.dates[key] ? ' selected' : ''));
-        b.type = 'button'; b.onclick = () => choose(iso); grid.append(b);
-      }
-      const foot = el('div', null, 'yt-cal-foot');
-      const today = el('button', 'Сегодня', 'yt-cal-day'), clear = el('button', 'Очистить', 'yt-cal-day');
-      today.type = clear.type = 'button';
-      today.onclick = () => choose(new Date().toISOString().slice(0, 10)); clear.onclick = () => choose('');
-      foot.append(today, clear);
-      popup.append(nav, grid, foot);
-    };
-    draw(); document.body.append(popup);
+  // ---------- календарь: тот же код и разметка, что в «Отчётах» (yt-date-btn / yt-cal-*) ----------
+  const MONTH_NAMES = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+  const WEEKDAY_NAMES = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+  let openCalendarPopup = null;
+  const isoOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const formatRu = isoStr => { if (!isoStr) return "Выберите дату"; const [y, m, d] = isoStr.split("-"); return `${d}.${m}.${y}`; };
+  const dateVal = key => $(key === 'from' ? 'cdr-from-value' : 'cdr-to-value').value;
+  function closeCalendar() {
+    if (openCalendarPopup) { openCalendarPopup.remove(); openCalendarPopup = null; }
+    document.removeEventListener("mousedown", outsideClickHandler, true);
   }
-  document.addEventListener('pointerdown', event => {
-    if (event.target.closest('.yt-cal-popup') || event.target.closest('.yt-date-btn')) return;
-    closeCalendar();
-  }, true);
+  globalThis.YouTrackReferenceCalendar = Object.freeze({ close: closeCalendar });
+  function outsideClickHandler(e) { if (openCalendarPopup && !openCalendarPopup.contains(e.target)) closeCalendar(); }
+  function openCalendar(input, btn) {
+    if (openCalendarPopup) {
+      const wasForThisBtn = openCalendarPopup.dataset.forBtn === btn.id;
+      closeCalendar();
+      if (wasForThisBtn) return;
+    }
+    const initial = input.value ? new Date(input.value + "T00:00:00") : new Date();
+    let viewYear = initial.getFullYear(), viewMonth = initial.getMonth();
+    const popup = document.createElement("div");
+    popup.className = "yt-cal-popup"; popup.dataset.forBtn = btn.id;
+    document.body.appendChild(popup); openCalendarPopup = popup;
+    const pick = value => { input.value = value; btn.textContent = formatRu(value); saveSettings(); closeCalendar(); };
+    function render() {
+      const firstDay = new Date(viewYear, viewMonth, 1);
+      const startWeekday = (firstDay.getDay() + 6) % 7;
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      const selectedIso = input.value, todayIso = isoOf(new Date());
+      let cells = "";
+      for (let i = 0; i < startWeekday; i++) cells += `<span class="yt-cal-day yt-cal-empty"></span>`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateIso = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const cls = ["yt-cal-day"];
+        if (dateIso === selectedIso) cls.push("selected");
+        if (dateIso === todayIso) cls.push("today");
+        cells += `<button type="button" class="${cls.join(" ")}" data-date="${dateIso}">${d}</button>`;
+      }
+      popup.innerHTML = `
+        <div class="yt-cal-header">
+          <button type="button" class="yt-cal-nav" data-nav="-1">‹</button>
+          <span class="yt-cal-title">${MONTH_NAMES[viewMonth]} ${viewYear}</span>
+          <button type="button" class="yt-cal-nav" data-nav="1">›</button>
+        </div>
+        <div class="yt-cal-weekdays">${WEEKDAY_NAMES.map(w => `<span>${w}</span>`).join("")}</div>
+        <div class="yt-cal-grid">${cells}</div>
+        <div class="yt-links"><a data-clear="1">Очистить</a></div>
+      `;
+      popup.querySelectorAll(".yt-cal-nav").forEach(navBtn => navBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        viewMonth += parseInt(navBtn.dataset.nav, 10);
+        if (viewMonth < 0) { viewMonth = 11; viewYear -= 1; }
+        if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
+        render();
+      }));
+      popup.querySelectorAll(".yt-cal-day:not(.yt-cal-empty)").forEach(cell => cell.addEventListener("click", e => { e.stopPropagation(); pick(cell.dataset.date); }));
+      popup.querySelector("[data-clear]").addEventListener("click", e => { e.stopPropagation(); pick(""); });
+    }
+    render();
+    const rect = btn.getBoundingClientRect();
+    popup.style.position = "fixed"; popup.style.top = `${rect.bottom + 6}px`; popup.style.left = `${rect.left}px`;
+    requestAnimationFrame(() => {
+      const popupRect = popup.getBoundingClientRect();
+      if (popupRect.right > window.innerWidth - 8) popup.style.left = `${Math.max(8, window.innerWidth - popupRect.width - 8)}px`;
+    });
+    setTimeout(() => document.addEventListener("mousedown", outsideClickHandler, true), 0);
+  }
+  function initDatePicker(inputId, btnId, value) {
+    const input = $(inputId), btn = $(btnId);
+    input.value = value || ""; btn.textContent = formatRu(input.value);
+    btn.addEventListener("click", e => { e.stopPropagation(); openCalendar(input, btn); });
+  }
 
   // ---------- API ----------
   async function loadToken() {
@@ -161,23 +194,29 @@
     const field = !stored.field || stored.field === 'Разработчик' ? DEFAULTS.field : stored.field;
     return { ...DEFAULTS, from: stored.from || '', to: stored.to || '', field, tag: stored.tag || DEFAULTS.tag, projects: Array.isArray(stored.projects) ? stored.projects : [] };
   }
-  const saveSettings = () => chrome.storage.local.set({ [SETTINGS_KEY]: { tag: $('cdr-tag').value.trim(), field: $('cdr-field').value.trim(), projects: [...state.selected], from: state.dates.from, to: state.dates.to } });
+  const saveSettings = () => chrome.storage.local.set({ [SETTINGS_KEY]: { tag: $('cdr-tag').value.trim(), field: $('cdr-field').value.trim(), projects: [...state.selected], from: dateVal('from'), to: dateVal('to') } });
 
+  // Те же чипы, подписи и ссылки «Выбрать все / Снять всё», что и в «Отчётах».
   function renderProjects() {
-    const box = $('cdr-projects'), query = norm($('cdr-project-search').value);
+    const box = $('cdr-projects');
     box.replaceChildren();
-    const shown = state.projects.filter(p => !query || norm(p.name).includes(query) || norm(p.shortName).includes(query));
-    for (const project of shown) {
-      const chip = el('button', project.name, 'yt-chip' + (state.selected.has(project.id) ? ' selected' : ''));
-      chip.type = 'button'; chip.title = project.shortName; chip.setAttribute('aria-pressed', String(state.selected.has(project.id)));
+    if (!state.projects.length) box.append(el('span', 'Проекты появятся после подключения к YouTrack.', 'yt-chip-empty'));
+    for (const project of state.projects) {
+      const chip = el('button', project.name + (project.shortName ? ` · ${project.shortName}` : ''), 'yt-chip' + (state.selected.has(project.id) ? ' selected' : ''));
+      chip.type = 'button'; chip.dataset.name = project.name;
       chip.addEventListener('click', () => {
         if (state.selected.has(project.id)) state.selected.delete(project.id); else state.selected.add(project.id);
-        renderProjects(); saveSettings(); suggestFields();
+        chip.classList.toggle('selected', state.selected.has(project.id));
+        updateCount(); saveSettings(); suggestFields();
       });
       box.append(chip);
     }
-    if (!shown.length) box.append(el('p', state.projects.length ? 'Ничего не найдено.' : 'Проекты ещё не загружены.', 'hint'));
-    $('cdr-selected-count').textContent = `Выбрано проектов: ${state.selected.size}`;
+    updateCount();
+  }
+  const updateCount = () => { $('cdr-selected-count').textContent = state.selected.size ? `(выбрано: ${state.selected.size})` : ''; };
+  function toggleAll(checked) {
+    for (const p of state.projects) { if (checked) state.selected.add(p.id); else state.selected.delete(p.id); }
+    renderProjects(); saveSettings(); suggestFields();
   }
   async function loadProjects() {
     setStatus('Загружаю проекты…');
@@ -219,7 +258,7 @@
     if (!state.selected.size) return showError('Выберите хотя бы один проект.');
     if (!tag) return showError('Укажите тег.');
     if (!field) return showError('Укажите поле для группировки.');
-    if (state.dates.from && state.dates.to && state.dates.from > state.dates.to) return showError('Дата «с» позже даты «по».');
+    if (dateVal('from') && dateVal('to') && dateVal('from') > dateVal('to')) return showError('Дата «с» позже даты «по».');
     showError(''); saveSettings();
     state.running = true; state.controller = new AbortController();
     $('cdr-run').disabled = true; $('cdr-stop').disabled = false; $('cdr-result').hidden = true;
@@ -227,8 +266,8 @@
     try {
       const chosen = state.projects.filter(p => state.selected.has(p.id));
       const params = { categories: 'TagsCategory', issueQuery: issueQuery(chosen), fields: 'id,timestamp,author(id,login,fullName),added(id,name),target(id,idReadable,project(id,name,shortName))' };
-      if (state.dates.from) params.start = Date.parse(`${state.dates.from}T00:00:00.000Z`);
-      if (state.dates.to) params.end = Date.parse(`${state.dates.to}T23:59:59.999Z`);
+      if (dateVal('from')) params.start = Date.parse(`${dateVal('from')}T00:00:00.000Z`);
+      if (dateVal('to')) params.end = Date.parse(`${dateVal('to')}T23:59:59.999Z`);
       setStatus('Читаю историю тегов…');
       const activities = await pages('/api/activities', params, PAGE_SIZE, signal, (n, count) => setStatus(`История тегов: запросов ${n}, событий ${count}…`));
       const tagged = collectTagged(activities, tag, state.selected);
@@ -302,13 +341,11 @@
   document.addEventListener('DOMContentLoaded', async () => {
     const settings = await readSettings();
     $('cdr-tag').value = settings.tag; $('cdr-field').value = settings.field;
-    state.dates = { from: settings.from, to: settings.to };
-    for (const [key, id] of [['from', 'cdr-from'], ['to', 'cdr-to']]) { const b = $(id); b.textContent = formatDate(state.dates[key]); b.addEventListener('click', () => openCalendar(b, key)); }
+    initDatePicker('cdr-from-value', 'cdr-from', settings.from);
+    initDatePicker('cdr-to-value', 'cdr-to', settings.to);
     state.selected = new Set(settings.projects);
-    $('cdr-project-search').addEventListener('input', renderProjects);
-    $('cdr-select-all').addEventListener('click', () => { const q = norm($('cdr-project-search').value); state.projects.filter(p => !q || norm(p.name).includes(q) || norm(p.shortName).includes(q)).forEach(p => state.selected.add(p.id)); renderProjects(); saveSettings(); suggestFields(); });
-    $('cdr-clear').addEventListener('click', () => { state.selected.clear(); renderProjects(); saveSettings(); });
-    $('cdr-reload').addEventListener('click', loadProjects);
+    $('cdr-select-all').addEventListener('click', () => toggleAll(true));
+    $('cdr-clear').addEventListener('click', () => toggleAll(false));
     $('cdr-connect').addEventListener('click', refreshConnection);
     $('cdr-run').addEventListener('click', run);
     $('cdr-stop').addEventListener('click', () => state.controller?.abort());

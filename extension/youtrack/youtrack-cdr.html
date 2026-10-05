@@ -16,25 +16,36 @@
       <button id="cdr-connect" class="cdr-btn" type="button">Обновить подключение</button>
     </div>
     <p class="hint">Ищет в выбранных проектах все задачи, на которые когда-либо навешивали тег, и считает их по значению выбранного поля. Задача входит в группу один раз; отдельно считается, сколько раз тег навешивали.</p>
-    <div class="cdr-grid">
-      <label>Тег<input id="cdr-tag" type="text" maxlength="100" autocomplete="off"></label>
-      <label>Поле для группировки<input id="cdr-field" type="text" maxlength="100" list="cdr-field-options" autocomplete="off"></label>
-      <label>События с<button id="cdr-from" class="yt-date-btn" type="button"></button></label>
-      <label>События по<button id="cdr-to" class="yt-date-btn" type="button"></button></label>
+    <div class="yt-row">
+      <div class="yt-field"><label for="cdr-tag">Тег</label><input id="cdr-tag" type="text" maxlength="100" autocomplete="off"></div>
+      <div class="yt-field"><label for="cdr-field">Поле для группировки</label><input id="cdr-field" type="text" maxlength="100" list="cdr-field-options" autocomplete="off"></div>
     </div>
     <datalist id="cdr-field-options"></datalist>
-    <h3>Проекты</h3>
-    <div class="cdr-toolbar">
-      <input id="cdr-project-search" type="search" placeholder="Поиск проекта" aria-label="Поиск проекта">
-      <button id="cdr-select-all" class="cdr-btn" type="button">Выбрать показанные</button>
-      <button id="cdr-clear" class="cdr-btn" type="button">Снять выбор</button>
-      <button id="cdr-reload" class="cdr-btn" type="button">Обновить список</button>
-      <span id="cdr-selected-count" class="hint"></span>
+    <div class="yt-field" style="margin-top:14px">
+      <label>Проекты <span id="cdr-selected-count" class="cdr-count"></span></label>
+      <div id="cdr-projects" class="yt-chip-list">
+        <span class="yt-chip-empty">Проекты появятся после подключения к YouTrack.</span>
+      </div>
+      <div class="yt-links">
+        <a id="cdr-select-all" role="button" tabindex="0">Выбрать все</a>
+        <a id="cdr-clear" role="button" tabindex="0">Снять всё</a>
+      </div>
     </div>
-    <div id="cdr-projects" class="cdr-chips"></div>
-    <div class="cdr-actions">
-      <button id="cdr-run" class="cdr-btn primary" type="button">Построить</button>
-      <button id="cdr-stop" class="cdr-btn" type="button" disabled>Остановить</button>
+    <div class="yt-row">
+      <div class="yt-field">
+        <label>Дата с</label>
+        <button type="button" id="cdr-from" class="yt-date-btn"></button>
+        <input type="date" id="cdr-from-value" hidden>
+      </div>
+      <div class="yt-field">
+        <label>Дата по</label>
+        <button type="button" id="cdr-to" class="yt-date-btn"></button>
+        <input type="date" id="cdr-to-value" hidden>
+      </div>
+      <div class="cdr-actions">
+        <button id="cdr-run" class="cdr-btn primary" type="button">Построить</button>
+        <button id="cdr-stop" class="cdr-btn" type="button" disabled>Остановить</button>
+      </div>
     </div>
     <p id="cdr-status" class="status" role="status"></p>
     <p id="cdr-error" class="error" role="alert" hidden></p>

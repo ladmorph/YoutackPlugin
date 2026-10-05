@@ -1,28 +1,8 @@
 .cdr-main{max-width:1280px;margin:0 auto}
-.cdr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:16px 0}
-.cdr-grid label{display:grid;gap:6px;align-content:start;font-size:12.5px;font-weight:650;color:#46485c}
-.cdr-grid .cdr-wide{grid-column:1/-1}
-.cdr-grid input,.cdr-toolbar input{box-sizing:border-box;width:100%;min-height:44px;padding:8px 12px;border:1px solid #dcdde7;border-radius:12px;font:inherit;font-weight:400;color:#252637;background:#fff}
-.cdr-grid input:focus,.cdr-toolbar input:focus{border-color:#6545d8;outline:none}
-.cdr-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 12px}
-.cdr-toolbar input{width:auto;min-width:260px}
-.yt-date-btn{box-sizing:border-box;width:100%;min-height:44px;padding:8px 12px;border:1px solid #dcdde7;border-radius:12px;background:#fff;color:#252637;font:inherit;font-weight:400;text-align:left;cursor:pointer;box-shadow:none}
-.cdr-chips{display:flex;flex-wrap:wrap;gap:8px;max-height:260px;overflow:auto;padding:2px}
-.yt-chip{min-height:44px;padding:8px 14px;border:1px solid #dcdde7;border-radius:12px;background:#fff;color:#252637;font:inherit;font-size:14px;font-weight:650;cursor:pointer;box-shadow:none}
-.yt-chip:hover{background:#f6f4ff;border-color:#b4a3ed}
 .cdr-btn{min-height:44px;padding:10px 16px;border:1px solid #c8cad8;border-radius:12px;background:#fff;color:#5433c4;font:inherit;font-size:14px;font-weight:650;line-height:1.4;cursor:pointer;box-shadow:none}
 .cdr-btn:hover{background:#efebff;border-color:#b4a3ed}
 .cdr-btn.primary{background:#6545d8;border-color:#6545d8;color:#fff}
 .cdr-btn.primary:hover{background:#5433c4}
-.cdr-actions{display:flex;gap:10px;margin-top:16px}
-.yt-cal-popup{position:fixed;background:#fff;color:#252637}
-.yt-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.yt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.yt-cal-dow{text-align:center;font-size:11px;font-weight:700;color:#737586}
-.yt-cal-popup button{background:#fff;color:#252637;border:1px solid transparent;border-radius:8px;cursor:pointer}
-.yt-cal-popup button:hover{background:#efebff;color:#5433c4}
-.yt-cal-popup .yt-cal-day.selected{background:#6545d8;color:#fff}
-.yt-cal-foot{display:flex;gap:8px;margin-top:10px}
 .cdr-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px}
 .cdr-table th,.cdr-table td{padding:12px;border-bottom:1px solid #dcdde7;vertical-align:middle;overflow-wrap:anywhere}
 .cdr-table th{background:#eee8f7;color:#4a3b62;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
@@ -37,4 +17,91 @@
 .cdr-issues a{color:#6545d8}
 .cdr-muted{color:#737586}
 .error{color:#b92e2e;font-size:13px}
-@media(max-width:700px){.cdr-toolbar input{min-width:0;width:100%}.cdr-table{table-layout:auto}}
+@media(max-width:700px){.cdr-table{table-layout:auto}}
+/* Стили полей, чипов проектов, дат и календаря — как в «Отчётах» (youtrack-reference.js → injectStyles) */
+:root{--yt-ink:#202124;--yt-muted:#737577;--yt-blue-hover:#245ed7}
+.yt-chip-list { display:flex; flex-wrap:wrap; gap:8px; }
+.yt-chip {
+  border: 1px solid var(--yt-line, #dfe1e6);
+  background: #fff;
+  color: var(--yt-ink, #202124);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+  line-height: 1.3;
+}
+.yt-chip:hover { border-color: var(--yt-blue, #3574f0); }
+.yt-chip.selected {
+  background: var(--yt-blue, #3574f0);
+  color: #fff;
+  border-color: var(--yt-blue, #3574f0);
+}
+.yt-chip-empty { color: var(--yt-muted, #9aa1ac); font-size: 13px; }
+.yt-row { display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end; margin-top:14px; }
+.yt-field label { display:block; font-size:12px; font-weight:600; color: var(--yt-muted, #5e6064); margin-bottom:6px; }
+.yt-date-btn {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--yt-line, #bfc3c9);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--yt-ink, #202124);
+  background: #fff url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233574f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background-size: 15px 15px;
+  padding-right: 34px;
+  min-width: 150px;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color .15s, box-shadow .15s;
+}
+.yt-date-btn:hover { border-color: var(--yt-blue, #3574f0); }
+.yt-date-btn:focus, .yt-date-btn.yt-date-open {
+  outline: none;
+  border-color: var(--yt-blue, #3574f0);
+  box-shadow: 0 0 0 2px rgba(53,116,240,.18);
+}
+.yt-cal-popup {
+  background: #fff;
+  border: 1px solid var(--yt-line, #dfe1e6);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(23,24,25,.15);
+  padding: 12px;
+  width: 240px;
+  box-sizing: border-box;
+  overflow: hidden;
+  z-index: 99999;
+  font-family: inherit;
+}
+.yt-cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.yt-cal-title { font-size:13px; font-weight:700; color: var(--yt-ink, #202124); }
+.yt-cal-nav {
+  width:26px; height:26px; border-radius:6px; border:none; background:#f4f5f7;
+  color: var(--yt-blue, #3574f0); font-size:15px; cursor:pointer; line-height:1;
+  padding:0; box-sizing:border-box; flex-shrink:0;
+}
+.yt-cal-nav:hover { background:#e9f0ff; }
+.yt-cal-weekdays { display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:2px; margin-bottom:4px; width:100%; }
+.yt-cal-weekdays span { font-size:10.5px; color: var(--yt-muted, #9aa1ac); text-align:center; font-weight:600; min-width:0; overflow:hidden; }
+.yt-cal-grid { display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:2px; width:100%; }
+.yt-cal-day {
+  border:none; background:transparent; height:28px; border-radius:6px; font-size:12.5px;
+  color: var(--yt-ink, #202124); cursor:pointer;
+  width:100%; min-width:0; padding:0; margin:0; box-sizing:border-box;
+}
+.yt-cal-day:hover { background:#f2f6ff; }
+.yt-cal-day.today { font-weight:700; color: var(--yt-blue, #3574f0); }
+.yt-cal-day.selected { background: var(--yt-blue, #3574f0); color:#fff; }
+.yt-cal-day.selected:hover { background: var(--yt-blue, #3574f0); }
+.yt-cal-empty { pointer-events:none; width:100%; min-width:0; padding:0; margin:0; box-sizing:border-box; }
+.yt-links { margin-top:8px; display:flex; gap:14px; }
+.yt-links a { font-size:11.5px; color: var(--yt-blue, #2563eb); text-decoration:none; cursor:pointer; }
+.yt-links a:hover { text-decoration:underline; }
+.cdr-count { color:#9aa1ac; font-weight:400 }
+.cdr-actions{display:flex;gap:10px;margin-left:auto}
+.yt-field input[type=text]{box-sizing:border-box;width:260px;max-width:100%;height:38px;padding:0 12px;border:1px solid var(--yt-line,#dcdde7);border-radius:8px;font:inherit;font-size:13px;color:#202124;background:#fff}
+.yt-field input[type=text]:focus{border-color:var(--yt-blue,#3574f0);outline:none}
